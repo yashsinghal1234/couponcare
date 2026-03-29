@@ -1,0 +1,37 @@
+@import "tailwindcss";
+
+html,
+body,
+#root {
+  height: 100%;
+}
+
+body {
+  background: radial-gradient(circle at 20% 0%, #2b1308 0%, #0a0a0b 38%, #050506 100%);
+  color: #f5f5f5;
+}
+
+@layer components {
+  .cc-shell {
+    @apply min-h-screen;
+  }
+  .cc-card {
+    @apply rounded-3xl border border-white/10 bg-white/[0.03] backdrop-blur-sm;
+  }
+  .cc-title {
+    @apply text-2xl font-semibold tracking-tight text-white md:text-3xl;
+  }
+  .cc-muted {
+    @apply text-sm text-white/65;
+  }
+  .cc-input {
+    @apply w-full rounded-xl border border-white/15 bg-black/30 px-3 py-2 text-sm text-white outline-none placeholder:text-white/35 focus:border-orange-400;
+  }
+  .cc-btn {
+    @apply rounded-xl border border-white/15 bg-white/5 px-4 py-2 text-sm font-medium text-white transition hover:border-orange-400/70 hover:bg-orange-500/15;
+  }
+  .cc-btn-primary {
+    @apply rounded-xl bg-orange-500 px-4 py-2 text-sm font-semibold text-black transition hover:bg-orange-400;
+  }
+}
+

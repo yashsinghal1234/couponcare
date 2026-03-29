@@ -1,0 +1,1 @@
+{"root":["./src/main.tsx","./src/vite-env.d.ts","./src/app/app.tsx","./src/lib/api.ts","./src/lib/offerhelpers.ts","./src/pages/authpage.tsx","./src/pages/browsecouponspage.tsx","./src/pages/coupondetailpage.tsx","./src/pages/donatecouponpage.tsx","./src/pages/homepage.tsx","./src/pages/incomingrequestspage.tsx","./src/pages/profilepage.tsx"],"version":"5.9.3"}
