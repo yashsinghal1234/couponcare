@@ -1,11 +1,15 @@
 import { Router } from "express";
 import bcrypt from "bcryptjs";
-import jwt from "jsonwebtoken";
+import jwt, { type SignOptions } from "jsonwebtoken";
 import { z } from "zod";
 
 import { env } from "../config/env.js";
 import { requireAuth } from "../middleware/auth.js";
 import { UserModel } from "../models/User.js";
+
+const jwtSignOptions: SignOptions = {
+  expiresIn: env.jwtExpiresIn as SignOptions["expiresIn"]
+};
 
 export const authRouter = Router();
 
@@ -31,7 +35,7 @@ authRouter.post("/signup", async (req, res) => {
     roles: { donor: true, recipient: true }
   });
 
-  const token = jwt.sign({ userId: user._id.toString() }, env.jwtSecret, { expiresIn: env.jwtExpiresIn });
+  const token = jwt.sign({ userId: user._id.toString() }, env.jwtSecret, jwtSignOptions);
   res.status(201).json({
     token,
     user: { id: user._id.toString(), email: user.email, displayName: user.displayName, roles: user.roles, stats: user.stats }
@@ -54,7 +58,7 @@ authRouter.post("/login", async (req, res) => {
   const ok = await bcrypt.compare(password, user.passwordHash);
   if (!ok) return res.status(401).json({ error: "Invalid credentials" });
 
-  const token = jwt.sign({ userId: user._id.toString() }, env.jwtSecret, { expiresIn: env.jwtExpiresIn });
+  const token = jwt.sign({ userId: user._id.toString() }, env.jwtSecret, jwtSignOptions);
   res.json({
     token,
     user: { id: user._id.toString(), email: user.email, displayName: user.displayName, roles: user.roles, stats: user.stats }
