@@ -310,7 +310,7 @@ export function isRewardCoupon(input: string, brand: string): boolean {
 
     // Keywords that suggest a reward/cashback coupon
     const rewardKeywords = /reward|cashback|credit|voucher|gift|points|hupi|balance|redemp|refund|coupon code:/i;
-    
+
     // Brands commonly associated with rewards
     const rewardBrands = /amazon pay|flipkart gift|myntra reward|paytm|hdfc|lenskart|mobillera|phonep|cred|amazon|flipkart myntra/i;
 

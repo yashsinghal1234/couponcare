@@ -1,466 +1,546 @@
-import { useMemo, useState, useRef } from "react";
+import { useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
-
 import { apiPost } from "../lib/api";
-import { getBrandLogo, getOfferImage, improveOfferText } from "../lib/offerHelpers";
-import { detectCoupon, detectRewardSource, type CouponCategory, type CouponType, type CouponSource } from "../lib/detectCoupon";
+import { getBrandLogo, improveOfferText } from "../lib/offerHelpers";
+import { detectCoupon, type CouponCategory, type CouponType, type CouponSource } from "../lib/detectCoupon";
 
-const categories = ["Food", "Grocery", "Entertainment", "Shopping", "Travel", "Payment", "Other"] as const;
-const couponTypes = ["Percentage", "FlatAmount", "Cashback", "FreeShipping", "BuyOne", "OtherDeal"] as const;
-const revealModes = ["donorApproval", "autoRelease"] as const;
-const rewardSources = ["RegularPromo", "HDFCHupi", "PaytmReward", "UPIReward", "DirectBrandReward", "CreditCardReward", "Other"] as const;
+const categories: CouponCategory[] = ["Food", "Grocery", "Entertainment", "Shopping", "Travel", "Payment", "Other"];
+const couponTypes: CouponType[] = ["Percentage", "FlatAmount", "Cashback", "FreeShipping", "BuyOne", "OtherDeal"];
+const rewardSources: CouponSource[] = ["RegularPromo", "HDFCHupi", "PaytmReward", "UPIReward", "DirectBrandReward", "CreditCardReward", "Other"];
+
+const COUPON_TYPE_COLORS: Record<CouponType, { bg: string; border: string; text: string; emoji: string }> = {
+  Percentage: { bg: "bg-orange-50", border: "border-orange-300", text: "text-orange-700", emoji: "📊" },
+  FlatAmount: { bg: "bg-green-50", border: "border-green-300", text: "text-green-700", emoji: "💵" },
+  Cashback: { bg: "bg-blue-50", border: "border-blue-300", text: "text-blue-700", emoji: "💰" },
+  FreeShipping: { bg: "bg-purple-50", border: "border-purple-300", text: "text-purple-700", emoji: "🚚" },
+  BuyOne: { bg: "bg-pink-50", border: "border-pink-300", text: "text-pink-700", emoji: "🎁" },
+  OtherDeal: { bg: "bg-gray-50", border: "border-gray-300", text: "text-gray-700", emoji: "🎯" },
+};
+
+const CATEGORY_COLORS: Record<CouponCategory, string> = {
+  Food: "from-orange-400 to-red-500",
+  Grocery: "from-green-400 to-emerald-500",
+  Shopping: "from-purple-400 to-pink-500",
+  Entertainment: "from-red-400 to-pink-500",
+  Travel: "from-blue-400 to-cyan-500",
+  Payment: "from-indigo-400 to-blue-500",
+  Other: "from-gray-400 to-slate-500",
+};
 
 export function DonateCouponPage() {
   const navigate = useNavigate();
 
-  // Stage 1: Paste & Detection
+  // ─── State ────────────────────────────────
+  const [stage, setStage] = useState<"paste" | "confirm">("paste");
   const [pasteInput, setPasteInput] = useState("");
   const [detection, setDetection] = useState(detectCoupon(""));
-  const [stage, setStage] = useState<"paste" | "confirm">("paste");
+  const [status, setStatus] = useState("");
+  const [loading, setLoading] = useState(false);
 
-  // Stage 2: Confirm & Fill
-  const [brand, setBrand] = useState("");
+  // Confirm stage fields
   const [code, setCode] = useState("");
   const [valueDescription, setValueDescription] = useState("");
   const [couponType, setCouponType] = useState<CouponType>("FlatAmount");
-  const [expiryDate, setExpiryDate] = useState("");
   const [category, setCategory] = useState<CouponCategory>("Food");
-  const [city, setCity] = useState("");
+  const [expiryDate, setExpiryDate] = useState("");
   const [restrictions, setRestrictions] = useState("");
-  const [revealMode, setRevealMode] = useState<(typeof revealModes)[number]>("donorApproval");
+  const [city, setCity] = useState("");
+  const [revealMode, setRevealMode] = useState<"donorApproval" | "autoRelease">("donorApproval");
   const [showDonorName, setShowDonorName] = useState(true);
-  const [attestPaymentApp, setAttestPaymentApp] = useState(false);
-  // Reward coupon fields
+
+  // Reward fields
   const [isReward, setIsReward] = useState(false);
   const [rewardSource, setRewardSource] = useState<CouponSource>("RegularPromo");
   const [rewardTransferable, setRewardTransferable] = useState(true);
   const [rewardAttestation, setRewardAttestation] = useState(false);
-  const [status, setStatus] = useState("");
-  const [showOptional, setShowOptional] = useState(false);
 
-  const logo = useMemo(() => getBrandLogo(brand), [brand]);
-  const previewImage = useMemo(() => getOfferImage(brand, `${valueDescription} ${restrictions}`), [brand, restrictions, valueDescription]);
+  const logo = useMemo(() => getBrandLogo(detection.brand), [detection.brand]);
+  const confidencePercent = Math.round(detection.confidence * 100);
 
-  // Stage 1: Detect from input
+  // ─── Handlers ──────────────────────────────
   function handlePasteInput(text: string) {
     setPasteInput(text);
     const result = detectCoupon(text);
     setDetection(result);
+    setStatus("");
   }
 
-  // Stage 1 → Stage 2: Move to confirm with detected values
   function moveToConfirm() {
     if (!detection.brand) {
-      setStatus("Please type or paste coupon details with a recognizable brand name.");
+      setStatus("💭 Hmm, I couldn't detect a brand. Try typing something like 'Swiggy 50%' or 'Amazon ₹200'.");
       return;
     }
-
-    // Populate stage 2 with detected values
-    setBrand(detection.brand);
     setCategory(detection.category);
     setCouponType(detection.type);
-    setCode(""); // User still fills this
     setValueDescription(detection.suggestedDescription || "");
-    setRestrictions("");
-    setCity("");
-    setExpiryDate("");
-    
-    // Handle reward coupon detection
     if (detection.isReward) {
       setIsReward(true);
       setRewardSource(detection.rewardSource || "RegularPromo");
       setRewardTransferable(detection.transferable);
-      setRewardAttestation(false);
-    } else {
-      setIsReward(false);
     }
-
-    if (detection.isPaymentApp) {
-      setAttestPaymentApp(false);
-    }
-
-    setStatus("");
     setStage("confirm");
   }
 
-  // Stage 2 → Stage 1: Back button
   function backToStage1() {
     setStage("paste");
+    setStatus("");
   }
 
-  // Submit final coupon
   async function submit() {
     if (!code.trim()) {
-      setStatus("Please enter the coupon code.");
+      setStatus("⚠️ Please enter the coupon code.");
       return;
     }
     if (!expiryDate) {
-      setStatus("Please set an expiry date.");
+      setStatus("⚠️ Please set an expiry date.");
       return;
     }
-    if (detection.isPaymentApp && !attestPaymentApp) {
-      setStatus("Please confirm that this code is transferable before donating.");
-      return;
-    }
-    if (isReward && rewardTransferable && !rewardAttestation) {
-      setStatus("Please confirm that this reward is available in your account.");
+    if (isReward && !rewardTransferable && !rewardAttestation) {
+      setStatus("⚠️ Please confirm you have access to this reward.");
       return;
     }
 
-    setStatus("Submitting...");
-    const polishedValue = improveOfferText(valueDescription);
-    const polishedRestrictions = improveOfferText(restrictions);
-
-    const r = await apiPost<{ coupon: { id: string } }>("/api/coupons", {
-      brand,
-      code: code.trim(),
-      valueDescription: polishedValue || valueDescription,
-      couponType,
-      expiryDate,
-      category,
-      city: city || undefined,
-      restrictions: polishedRestrictions || restrictions || undefined,
-      revealMode,
-      showDonorName,
-      isReward: isReward || undefined,
-      rewardSource: isReward ? rewardSource : undefined,
-      rewardTransferable: isReward ? rewardTransferable : undefined,
-    });
-
-    if (!r.ok) return setStatus(r.error);
-    setStatus(`Created coupon: ${r.data.coupon.id}`);
-    navigate(`/coupons/${r.data.coupon.id}`);
+    setLoading(true);
+    try {
+      await apiPost("/api/coupons", {
+        code,
+        brand: detection.brand,
+        description: valueDescription,
+        category,
+        type: couponType,
+        expiry: expiryDate,
+        restrictions: restrictions || undefined,
+        city: city || undefined,
+        isReward,
+        rewardSource: isReward ? rewardSource : undefined,
+        rewardTransferable: isReward ? rewardTransferable : undefined,
+        revealMode,
+        showDonorName,
+      });
+      navigate("/browse?donated=true");
+    } catch (err) {
+      setStatus(`❌ Error: ${err instanceof Error ? err.message : "Unknown error"}`);
+    } finally {
+      setLoading(false);
+    }
   }
 
-  // ─── STAGE 1: Paste & Detect ──────────────────────────────────────
+  const typeMeta = COUPON_TYPE_COLORS[couponType];
+  const gradientClass = CATEGORY_COLORS[category];
+
+  // ─── STAGE 1: PASTE ────────────────────────────
   if (stage === "paste") {
-    const confidencePercent = detection.confidence;
-    const brandTags = detection.brand ? (
-      <div className="mt-3 flex flex-wrap gap-2">
-        <span className="inline-flex items-center gap-1.5 rounded-full bg-brand-600/30 border border-brand-500 text-brand-200 text-xs font-semibold px-3 py-1">
-          ✓ Brand: {detection.brand}
-        </span>
-        <span className="inline-flex items-center gap-1.5 rounded-full bg-violet-600/30 border border-violet-500 text-violet-200 text-xs font-semibold px-3 py-1">
-          ✓ {detection.category}
-        </span>
-        {detection.isPaymentApp && (
-          <span className="inline-flex items-center gap-1.5 rounded-full bg-red-600/30 border border-red-500 text-red-200 text-xs font-semibold px-3 py-1">
-            ⚠ Payment App
-          </span>
-        )}
-      </div>
-    ) : null;
-
     return (
-      <div className="mx-auto max-w-2xl">
-        <div>
-          <h1 className="cc-title">Donate a coupon</h1>
-          <p className="cc-muted mt-1">Paste or type your coupon code. We'll auto-detect everything else.</p>
-        </div>
-
-        {/* Paste Input */}
-        <div className="cc-card p-6 space-y-4">
-          <div>
-            <label className="block text-sm font-medium text-white/80 mb-2">Paste coupon code or details</label>
-            <textarea
-              className="cc-input font-mono text-sm resize-none h-24"
-              placeholder="e.g., SWIGGY50 or ₹100 off on orders above ₹299 using Swiggy... or even just 'zomato 50% off'"
-              value={pasteInput}
-              onChange={(e) => handlePasteInput(e.target.value)}
-              spellCheck="false"
-            />
+      <main className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-slate-100 px-4 py-8">
+        <div className="max-w-2xl mx-auto">
+          {/* Header */}
+          <div className="text-center mb-10">
+            <h1 className="text-4xl sm:text-5xl font-extrabold text-zinc-900 mb-3">
+              🎁 Share Your Coupon
+            </h1>
+            <p className="text-lg text-zinc-500">
+              Paste or type the coupon details. We'll auto-detect everything.
+            </p>
           </div>
 
-          {/* Confidence Bar */}
-          {pasteInput.trim() && (
-            <div>
-              <div className="flex justify-between items-center mb-1">
-                <span className="text-xs text-white/60">Detection confidence</span>
-                <span className={`text-xs font-semibold ${confidencePercent >= 70 ? "text-green-400" : confidencePercent >= 50 ? "text-yellow-400" : "text-red-400"}`}>
-                  {confidencePercent}%
-                </span>
-              </div>
-              <div className="w-full h-2 bg-black/40 rounded-full overflow-hidden">
-                <div
-                  className={`h-full transition-all duration-200 ${confidencePercent >= 70 ? "bg-green-500" : confidencePercent >= 50 ? "bg-yellow-500" : "bg-red-500"}`}
-                  style={{ width: `${confidencePercent}%` }}
-                />
-              </div>
+          {/* Main Card */}
+          <div className="bg-white rounded-3xl shadow-lg border border-zinc-200 overflow-hidden">
+            {/* Top bar with gradient */}
+            <div className={`h-2 bg-gradient-to-r ${CATEGORY_COLORS.Food}`} />
+
+            <div className="p-8 sm:p-10">
+              {/* Input */}
+              <label className="block mb-2 text-sm font-semibold text-zinc-700">
+                Paste or type coupon details
+              </label>
+              <textarea
+                value={pasteInput}
+                onChange={(e) => handlePasteInput(e.target.value)}
+                placeholder="e.g., Swiggy ₹100 off on orders above ₹299
+or paste: SWIGGY50
+or just: zomato 50% off"
+                className="w-full bg-slate-50 border-2 border-zinc-200 rounded-xl p-4 font-mono text-sm focus:border-orange-400 focus:outline-none focus:ring-2 focus:ring-orange-200 transition resize-none h-28"
+              />
+
+              {/* Detection Results */}
+              {detection.brand && (
+                <div className="mt-7 space-y-4 p-5 bg-gradient-to-br from-blue-50 to-cyan-50 rounded-2xl border-2 border-blue-200">
+                  {/* Brand + Logo */}
+                  <div className="flex items-center gap-3">
+                    {logo && <img src={logo} alt={detection.brand} className="w-8 h-8 object-contain" />}
+                    <div>
+                      <p className="text-xs text-zinc-500 uppercase tracking-widest font-bold">Brand Detected</p>
+                      <p className="text-xl font-bold text-zinc-900">{detection.brand}</p>
+                    </div>
+                  </div>
+
+                  {/* Category + Type badges */}
+                  <div className="flex flex-wrap gap-2">
+                    <span className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-white border border-zinc-300 rounded-full text-xs font-semibold text-zinc-700">
+                      📂 {detection.category}
+                    </span>
+                    <span className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold border ${typeMeta.bg} border-zinc-300 ${typeMeta.text}`}>
+                      {typeMeta.emoji} {detection.type}
+                    </span>
+                  </div>
+
+                  {/* Confidence bar */}
+                  <div>
+                    <div className="flex items-center justify-between mb-2">
+                      <p className="text-xs font-semibold text-zinc-600">Detection Confidence</p>
+                      <p className="text-xs font-bold text-zinc-900">{confidencePercent}%</p>
+                    </div>
+                    <div className="w-full h-2.5 bg-white rounded-full overflow-hidden border border-zinc-300">
+                      <div
+                        className={`h-full bg-gradient-to-r ${
+                          confidencePercent >= 80 ? "from-green-400 to-emerald-500" : "from-yellow-400 to-orange-500"
+                        } transition-all duration-500`}
+                        style={{ width: `${confidencePercent}%` }}
+                      />
+                    </div>
+                  </div>
+
+                  {/* Reward detection */}
+                  {detection.isReward && (
+                    <div className="p-3 bg-purple-100 border border-purple-300 rounded-lg">
+                      <p className="text-sm font-semibold text-purple-900">
+                        💳 This looks like a reward/cashback coupon
+                      </p>
+                      <p className="text-xs text-purple-800 mt-1">
+                        Source: {detection.rewardSource || "Unknown"} · {detection.transferable ? "✅ Transferable" : "⚠️ May need your help"}
+                      </p>
+                    </div>
+                  )}
+
+                  {/* Warnings */}
+                  {detection.warning && (
+                    <div className="p-3 bg-amber-100 border border-amber-300 rounded-lg">
+                      <p className="text-sm font-semibold text-amber-900">⚠️ {detection.warning}</p>
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* Status message */}
+              {status && (
+                <div className="mt-6 p-4 bg-red-50 border-2 border-red-300 rounded-xl">
+                  <p className="text-sm font-semibold text-red-900">{status}</p>
+                </div>
+              )}
+
+              {/* Next button */}
+              <button
+                onClick={moveToConfirm}
+                disabled={!detection.brand}
+                className={`mt-8 w-full py-3.5 px-6 rounded-xl font-bold text-lg transition-all ${
+                  detection.brand
+                    ? "bg-gradient-to-r from-orange-500 to-red-500 text-white hover:shadow-lg hover:scale-105"
+                    : "bg-zinc-200 text-zinc-400 cursor-not-allowed"
+                }`}
+              >
+                Next: Confirm Details →
+              </button>
+
+              {/* Info footer */}
+              <p className="text-xs text-zinc-400 text-center mt-6">
+                💡 Tip: The more details you paste, the better we detect. E.g., "Swiggy ₹100 off on orders above ₹299"
+              </p>
             </div>
-          )}
-
-          {/* Detected Tags */}
-          {brandTags}
-
-          {/* Warning */}
-          {detection.warning && (
-            <div className="bg-red-600/20 border border-red-500/40 rounded-lg p-3 text-sm text-red-200">
-              {detection.warning}
-            </div>
-          )}
-
-          {/* CTA */}
-          {pasteInput.trim() && (
-            <button
-              className="cc-btn-primary w-full"
-              onClick={moveToConfirm}
-              disabled={!detection.brand}
-            >
-              Next → Confirm details
-            </button>
-          )}
+          </div>
         </div>
-      </div>
+      </main>
     );
   }
 
-  // ─── STAGE 2: Confirm & Fill ─────────────────────────────────────
+  // ─── STAGE 2: CONFIRM ───────────────────────────
   return (
-    <div className="mx-auto max-w-3xl">
-      <button
-        className="mb-3 text-xs text-white/60 hover:text-white/90 flex items-center gap-1"
-        onClick={backToStage1}
-      >
-        ← Back to paste
-      </button>
-
-      {/* Preview */}
-      {brand && (
-        <div className="cc-card overflow-hidden mb-4">
-          <img src={previewImage} alt="Offer preview" className="h-40 w-full object-cover" />
-        </div>
-      )}
-
-      <div className="cc-card p-6 space-y-4">
-        <div>
-          <h2 className="text-lg font-bold text-white">Confirm & complete</h2>
-          <p className="text-sm text-white/60 mt-1">We detected the brand automatically. Fill in the rest.</p>
+    <main className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-slate-100 px-4 py-8">
+      <div className="max-w-3xl mx-auto">
+        {/* Header */}
+        <div className="text-center mb-10">
+          <button
+            onClick={backToStage1}
+            className="text-sm text-zinc-500 hover:text-zinc-700 font-semibold mb-4 inline-flex items-center gap-1.5"
+          >
+            ← Back to paste
+          </button>
+          <h1 className="text-4xl font-extrabold text-zinc-900 mb-3">
+            ✅ Almost there!
+          </h1>
+          <p className="text-lg text-zinc-500">
+            Just fill in a few more details.
+          </p>
         </div>
 
-        {logo && (
-          <div className="inline-flex items-center gap-2 rounded-full border border-white/15 px-3 py-1 text-xs text-white/80 bg-black/30">
-            <img src={logo} alt={brand} className="h-4 w-4 rounded-sm bg-white" />
-            {brand} detected
-          </div>
-        )}
-
-        {/* Main fields grid */}
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 pt-2">
-          {/* Brand (read-only display) */}
-          <div className="sm:col-span-2">
-            <label className="block text-sm">
-              <div className="mb-1 text-white/70">Brand</div>
-              <input className="cc-input bg-black/40" value={brand} disabled />
-            </label>
-          </div>
-
-          {/* Category */}
-          <label className="block text-sm">
-            <div className="mb-1 text-white/70">Category</div>
-            <select className="cc-input" value={category} onChange={(e) => setCategory(e.target.value as CouponCategory)}>
-              {categories.map((c) => (
-                <option key={c} value={c}>
-                  {c}
-                </option>
-              ))}
-            </select>
-          </label>
-
-          {/* Coupon Type */}
-          <label className="block text-sm">
-            <div className="mb-1 text-white/70">Type</div>
-            <select className="cc-input" value={couponType} onChange={(e) => setCouponType(e.target.value as CouponType)}>
-              {couponTypes.map((t) => (
-                <option key={t} value={t}>
-                  {t}
-                </option>
-              ))}
-            </select>
-          </label>
-
-          {/* Coupon Code (required) */}
-          <label className="block text-sm sm:col-span-2">
-            <div className="mb-1 text-white/70">
-              Coupon code <span className="text-red-400">*</span>
-            </div>
-            <input
-              className="cc-input font-mono"
-              placeholder="e.g., SWIGGY50 or Z123ABC"
-              value={code}
-              onChange={(e) => setCode(e.target.value.toUpperCase())}
-            />
-          </label>
-
-          {/* Value Description (from suggested) */}
-          <label className="block text-sm sm:col-span-2">
-            <div className="mb-1 text-white/70">What does it offer?</div>
-            <input
-              className="cc-input"
-              placeholder="e.g., ₹100 off on orders above ₹299"
-              value={valueDescription}
-              onChange={(e) => setValueDescription(e.target.value)}
-              onBlur={() => setValueDescription((v) => improveOfferText(v))}
-            />
-          </label>
-
-          {/* Expiry Date (required) */}
-          <label className="block text-sm">
-            <div className="mb-1 text-white/70">
-              Expiry date <span className="text-red-400">*</span>
-            </div>
-            <input className="cc-input" type="date" value={expiryDate} onChange={(e) => setExpiryDate(e.target.value)} />
-          </label>
-
-          {/* City (optional) */}
-          <label className="block text-sm">
-            <div className="mb-1 text-white/70">City (optional)</div>
-            <input className="cc-input" placeholder="Delhi, Mumbai, etc." value={city} onChange={(e) => setCity(e.target.value)} />
-          </label>
-        </div>
-
-        {/* Optional fields collapse */}
-        <details className="border border-white/10 rounded-lg p-3 group">
-          <summary className="text-sm font-medium text-white/80 cursor-pointer flex items-center gap-2">
-            <span className="group-open:rotate-180 transition-transform inline-block">▶</span>
-            Additional details (optional)
-          </summary>
-          <div className="mt-3 pt-3 border-t border-white/10 space-y-3">
-            <label className="block text-sm">
-              <div className="mb-1 text-white/70">Restrictions</div>
-              <input
-                className="cc-input"
-                placeholder="e.g., Not valid on alcohol, minimum spend ₹500"
-                value={restrictions}
-                onChange={(e) => setRestrictions(e.target.value)}
-                onBlur={() => setRestrictions((v) => improveOfferText(v))}
-              />
-            </label>
-
-            <div className="space-y-2 text-sm">
-              <label className="flex items-center gap-2">
-                <input
-                  type="checkbox"
-                  checked={showDonorName}
-                  onChange={(e) => setShowDonorName(e.target.checked)}
-                />
-                <span className="text-white/80">Show my name on listing</span>
-              </label>
-
-              <label className="flex items-center gap-2">
-                <select
-                  className="cc-input text-xs py-1 px-2"
-                  value={revealMode}
-                  onChange={(e) => setRevealMode(e.target.value as any)}
-                >
-                  {revealModes.map((m) => (
-                    <option key={m} value={m}>
-                      {m === "donorApproval" ? "I approve requests" : "Auto-release code"}
-                    </option>
-                  ))}
-                </select>
-              </label>
+        {/* Main Card */}
+        <div className="bg-white rounded-3xl shadow-lg border border-zinc-200 overflow-hidden">
+          {/* Brand banner */}
+          <div className={`h-24 bg-gradient-to-r ${gradientClass} relative flex items-center px-8`}>
+            {logo && (
+              <img src={logo} alt={detection.brand} className="w-12 h-12 object-contain bg-white rounded-lg p-2" />
+            )}
+            <div className="ml-4 text-white">
+              <p className="text-xs uppercase tracking-widest font-bold opacity-90">brand</p>
+              <p className="text-2xl font-extrabold">{detection.brand}</p>
             </div>
           </div>
-        </details>
 
-        {/* Reward Coupon Detection & Fields */}
-        <div className="border border-white/10 rounded-lg p-4 space-y-3 bg-violet-600/10">
-          <div>
-            <h3 className="text-sm font-semibold text-white mb-2">Is this a reward or cashback coupon?</h3>
-            <p className="text-xs text-white/60 mb-3">Reward coupons come from credit cards, UPI apps, or brand loyalty programs (e.g., HDFC Hupi, Paytm rewards, Lenskart)</p>
-            <label className="flex items-center gap-2">
-              <input
-                type="checkbox"
-                checked={isReward}
-                onChange={(e) => setIsReward(e.target.checked)}
-              />
-              <span className="text-white/80">Yes, this is a reward or cashback coupon</span>
-            </label>
-          </div>
+          <div className="p-8 sm:p-10 space-y-8">
+            {/* Section 1: Essential Fields */}
+            <div>
+              <h2 className="text-lg font-bold text-zinc-900 mb-5 flex items-center gap-2">
+                🔑 Essential Details
+              </h2>
+              <div className="space-y-5">
+                {/* Code */}
+                <div>
+                  <label className="block text-sm font-semibold text-zinc-700 mb-2">
+                    Coupon Code <span className="text-red-500">*</span>
+                  </label>
+                  <input
+                    type="text"
+                    value={code}
+                    onChange={(e) => setCode(e.target.value)}
+                    placeholder="e.g., SWIGGY50, SAVE100"
+                    className="w-full bg-slate-50 border-2 border-zinc-200 rounded-xl p-3 font-mono font-semibold focus:border-orange-400 focus:outline-none focus:ring-2 focus:ring-orange-200 transition"
+                  />
+                </div>
 
-          {isReward && (
-            <div className="space-y-3 pt-2 border-t border-white/20">
-              <label className="block text-sm">
-                <div className="mb-1 text-white/70">Where is this reward from?</div>
-                <select 
-                  className="cc-input text-sm" 
-                  value={rewardSource} 
-                  onChange={(e) => setRewardSource(e.target.value as CouponSource)}
-                >
-                  <option value="RegularPromo">Regular Promo Code</option>
-                  <option value="HDFCHupi">HDFC Hupi Reward</option>
-                  <option value="PaytmReward">Paytm Cashback/Reward</option>
-                  <option value="UPIReward">UPI App Reward (Google Pay, PhonePe, etc.)</option>
-                  <option value="CreditCardReward">Credit Card Reward Points</option>
-                  <option value="DirectBrandReward">Brand Loyalty/Direct Reward</option>
-                  <option value="Other">Other</option>
-                </select>
-              </label>
+                {/* Value Description */}
+                <div>
+                  <label className="block text-sm font-semibold text-zinc-700 mb-2">
+                    What's the offer? <span className="text-red-500">*</span>
+                  </label>
+                  <input
+                    type="text"
+                    value={valueDescription}
+                    onChange={(e) => setValueDescription(e.target.value)}
+                    placeholder="e.g., 50% off up to ₹100, Free delivery on orders above ₹299"
+                    className="w-full bg-slate-50 border-2 border-zinc-200 rounded-xl p-3 focus:border-orange-400 focus:outline-none focus:ring-2 focus:ring-orange-200 transition"
+                  />
+                </div>
 
-              <label className="flex items-start gap-2 text-sm">
-                <input
-                  type="checkbox"
-                  checked={rewardTransferable}
-                  onChange={(e) => setRewardTransferable(e.target.checked)}
-                  className="mt-0.5"
-                />
-                <span className="text-white/80">
-                  This reward code can be transferred to another person (account-independent)
+                {/* Expiry */}
+                <div>
+                  <label className="block text-sm font-semibold text-zinc-700 mb-2">
+                    Expires on <span className="text-red-500">*</span>
+                  </label>
+                  <input
+                    type="date"
+                    value={expiryDate}
+                    onChange={(e) => setExpiryDate(e.target.value)}
+                    className="w-full bg-slate-50 border-2 border-zinc-200 rounded-xl p-3 focus:border-orange-400 focus:outline-none focus:ring-2 focus:ring-orange-200 transition"
+                  />
+                </div>
+              </div>
+            </div>
+
+            {/* Section 2: Coupon Type & Category */}
+            <div>
+              <h2 className="text-lg font-bold text-zinc-900 mb-5 flex items-center gap-2">
+                🏷️ Coupon Type & Category
+              </h2>
+              <div className="grid sm:grid-cols-2 gap-5">
+                {/* Type */}
+                <div>
+                  <label className="block text-sm font-semibold text-zinc-700 mb-2">Type</label>
+                  <select
+                    value={couponType}
+                    onChange={(e) => setCouponType(e.target.value as CouponType)}
+                    className="w-full bg-slate-50 border-2 border-zinc-200 rounded-xl p-3 focus:border-orange-400 focus:outline-none focus:ring-2 focus:ring-orange-200 transition"
+                  >
+                    {couponTypes.map((t) => (
+                      <option key={t} value={t}>
+                        {COUPON_TYPE_COLORS[t].emoji} {t}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                {/* Category */}
+                <div>
+                  <label className="block text-sm font-semibold text-zinc-700 mb-2">Category</label>
+                  <select
+                    value={category}
+                    onChange={(e) => setCategory(e.target.value as CouponCategory)}
+                    className="w-full bg-slate-50 border-2 border-zinc-200 rounded-xl p-3 focus:border-orange-400 focus:outline-none focus:ring-2 focus:ring-orange-200 transition"
+                  >
+                    {categories.map((c) => (
+                      <option key={c} value={c}>
+                        {c}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+            </div>
+
+            {/* Section 3: Reward Coupon Detection */}
+            {detection.isReward && (
+              <div className="p-6 bg-gradient-to-br from-purple-50 to-indigo-50 border-2 border-purple-300 rounded-2xl">
+                <h2 className="text-lg font-bold text-purple-900 mb-5 flex items-center gap-2">
+                  💳 Reward/Cashback Coupon
+                </h2>
+                <div className="space-y-4">
+                  {/* Source */}
+                  <div>
+                    <label className="block text-sm font-semibold text-purple-900 mb-2">Where did you get this?</label>
+                    <select
+                      value={rewardSource}
+                      onChange={(e) => setRewardSource(e.target.value as CouponSource)}
+                      className="w-full bg-white border-2 border-purple-300 rounded-xl p-3 focus:outline-none focus:ring-2 focus:ring-purple-400 transition"
+                    >
+                      {rewardSources.map((s) => (
+                        <option key={s} value={s}>
+                          {s}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+
+                  {/* Transferability */}
+                  <div className="flex items-center gap-3 p-4 bg-white/70 rounded-lg border border-purple-200">
+                    <input
+                      type="checkbox"
+                      checked={rewardTransferable}
+                      onChange={(e) => setRewardTransferable(e.target.checked)}
+                      id="transferable"
+                      className="w-5 h-5 rounded border-zinc-300 text-purple-600"
+                    />
+                    <label htmlFor="transferable" className="text-sm font-semibold text-purple-900 cursor-pointer flex-1">
+                      ✅ This reward is transferable (recipient can redeem directly)
+                    </label>
+                  </div>
+
+                  {/* Attestation for non-transferable */}
+                  {!rewardTransferable && (
+                    <div className="p-4 bg-amber-100 border-2 border-amber-300 rounded-lg">
+                      <label className="flex items-center gap-3 cursor-pointer">
+                        <input
+                          type="checkbox"
+                          checked={rewardAttestation}
+                          onChange={(e) => setRewardAttestation(e.target.checked)}
+                          className="w-5 h-5 rounded border-amber-600 text-amber-600"
+                        />
+                        <span className="text-sm font-semibold text-amber-900">
+                          I confirm I have access to this reward and can help the recipient redeem it
+                        </span>
+                      </label>
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
+
+            {/* Section 4: Optional Details */}
+            <details className="group">
+              <summary className="cursor-pointer select-none">
+                <span className="text-lg font-bold text-zinc-900 flex items-center gap-2 group-open:text-orange-600">
+                  ⚙️ Optional Details
+                  <span className="text-zinc-400 group-open:rotate-180 transition-transform">▼</span>
                 </span>
-              </label>
+              </summary>
+              <div className="mt-5 space-y-5 p-6 bg-slate-50 rounded-2xl border border-zinc-200">
+                {/* Restrictions */}
+                <div>
+                  <label className="block text-sm font-semibold text-zinc-700 mb-2">
+                    Restrictions or terms
+                  </label>
+                  <textarea
+                    value={restrictions}
+                    onChange={(e) => setRestrictions(e.target.value)}
+                    placeholder="e.g., Not valid in Delhi, only for first-time users"
+                    className="w-full bg-white border-2 border-zinc-200 rounded-xl p-3 focus:border-orange-400 focus:outline-none focus:ring-2 focus:ring-orange-200 transition resize-none h-20"
+                  />
+                </div>
 
-              {rewardTransferable && (
-                <label className="flex items-start gap-2 text-sm bg-green-600/20 border border-green-500/40 rounded p-3">
+                {/* City */}
+                <div>
+                  <label className="block text-sm font-semibold text-zinc-700 mb-2">
+                    Available in city
+                  </label>
+                  <input
+                    type="text"
+                    value={city}
+                    onChange={(e) => setCity(e.target.value)}
+                    placeholder="e.g., Delhi, Mumbai, Pan-India"
+                    className="w-full bg-white border-2 border-zinc-200 rounded-xl p-3 focus:border-orange-400 focus:outline-none focus:ring-2 focus:ring-orange-200 transition"
+                  />
+                </div>
+
+                {/* Reveal mode */}
+                <div>
+                  <label className="block text-sm font-semibold text-zinc-700 mb-2">
+                    How should the code be shared?
+                  </label>
+                  <div className="space-y-2">
+                    <label className="flex items-center gap-3 p-3 border-2 border-zinc-200 rounded-xl hover:border-orange-300 cursor-pointer transition">
+                      <input
+                        type="radio"
+                        name="reveal"
+                        value="donorApproval"
+                        checked={revealMode === "donorApproval"}
+                        onChange={(e) => setRevealMode(e.target.value as typeof revealMode)}
+                        className="w-4 h-4"
+                      />
+                      <span className="font-semibold text-zinc-900">I approve each request first</span>
+                    </label>
+                    <label className="flex items-center gap-3 p-3 border-2 border-zinc-200 rounded-xl hover:border-orange-300 cursor-pointer transition">
+                      <input
+                        type="radio"
+                        name="reveal"
+                        value="autoRelease"
+                        checked={revealMode === "autoRelease"}
+                        onChange={(e) => setRevealMode(e.target.value as typeof revealMode)}
+                        className="w-4 h-4"
+                      />
+                      <span className="font-semibold text-zinc-900">Auto-release to anyone who needs it</span>
+                    </label>
+                  </div>
+                </div>
+
+                {/* Show donor name */}
+                <label className="flex items-center gap-3 p-3 border-2 border-zinc-200 rounded-xl hover:border-orange-300 cursor-pointer transition">
                   <input
                     type="checkbox"
-                    checked={rewardAttestation}
-                    onChange={(e) => setRewardAttestation(e.target.checked)}
-                    className="mt-0.5"
+                    checked={showDonorName}
+                    onChange={(e) => setShowDonorName(e.target.checked)}
+                    className="w-5 h-5 rounded border-zinc-300"
                   />
-                  <span className="text-green-200">
-                    I confirm this reward is in my account and available for transfer to the recipient.
-                  </span>
+                  <span className="font-semibold text-zinc-900">Show my name to the person who receives it</span>
                 </label>
-              )}
+              </div>
+            </details>
 
-              {!rewardTransferable && (
-                <div className="bg-yellow-600/20 border border-yellow-500/40 rounded p-3 text-xs text-yellow-200">
-                  ⚠ <strong>Note:</strong> Account-bound rewards may require your help to redeem. Recipient may need you to make the purchase on their behalf.
-                </div>
-              )}
-            </div>
-          )}
-        </div>
+            {/* Status message */}
+            {status && (
+              <div className={`p-4 rounded-xl border-2 ${status.includes("❌") ? "bg-red-50 border-red-300" : "bg-amber-50 border-amber-300"}`}>
+                <p className={`text-sm font-semibold ${status.includes("❌") ? "text-red-900" : "text-amber-900"}`}>
+                  {status}
+                </p>
+              </div>
+            )}
 
-        {detection.isPaymentApp && (
-          <div className="bg-red-600/20 border border-red-500/40 rounded-lg p-4 space-y-3">
-            <p className="text-sm text-red-200 font-medium">{detection.warning}</p>
-            <label className="flex items-start gap-2 text-sm">
-              <input
-                type="checkbox"
-                checked={attestPaymentApp}
-                onChange={(e) => setAttestPaymentApp(e.target.checked)}
-                className="mt-0.5"
-              />
-              <span className="text-white/80">
-                I confirm this code is <strong>transferable</strong> and works on any account.
-              </span>
-            </label>
+            {/* Submit button */}
+            <button
+              onClick={submit}
+              disabled={loading}
+              className={`w-full py-4 px-6 rounded-xl font-bold text-lg transition-all ${
+                loading
+                  ? "bg-gray-300 text-gray-600 cursor-not-allowed"
+                  : "bg-gradient-to-r from-green-500 to-emerald-600 text-white hover:shadow-xl hover:scale-105"
+              }`}
+            >
+              {loading ? "Donating... 🎁" : "Donate This Coupon! 🎁"}
+            </button>
+
+            {/* Info footer */}
+            <p className="text-xs text-zinc-400 text-center">
+              ✨ Your generosity matters. A real person will be grateful.
+            </p>
           </div>
-        )}
-      </div>
-
-      {/* Submit */}
-      <button className="cc-btn-primary w-full mt-4" onClick={submit} type="button">
-        Donate coupon
-      </button>
-
-      {status && (
-        <div className={`mt-3 rounded-xl p-3 text-sm ${status.includes("Submitting") ? "bg-blue-600/20 text-blue-200" : status.includes("Created") ? "bg-green-600/20 text-green-200" : "bg-red-600/20 text-red-200"}`}>
-          {status}
         </div>
-      )}
-    </div>
+      </div>
+    </main>
   );
 }
-
