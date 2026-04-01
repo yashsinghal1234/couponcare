@@ -70,7 +70,6 @@ export function DonateCouponPage() {
       setStatus("💭 Hmm, I couldn't detect a brand. Try typing something like 'Swiggy 50%' or 'Amazon ₹200'.");
       return;
     }
-    setBrand(detection.brand);
     setCategory(detection.category);
     setCouponType(detection.type);
     setValueDescription(detection.suggestedDescription || "");
