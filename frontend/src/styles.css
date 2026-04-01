@@ -1,279 +1,45 @@
 @import "tailwindcss";
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap');
 
-/* ─── Base Styles ─────────────────────────────────────────────── */
-:root {
-  --color-primary-600: #ea580c;
-  --color-primary-500: #f97316;
-  --color-primary-400: #fb923c;
-  --color-success-600: #16a34a;
-  --color-success-500: #22c55e;
-}
-
-html, body, #root {
-  height: 100%;
-  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-}
-
-body {
-  background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 50%, #e2e8f0 100%);
-  color: #1e293b;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-}
-
-/* ─── Smooth View Transitions ─────────────────────────────────── */
+/* Smooth view transition animations */
 ::view-transition-group(*),
 ::view-transition-old(*),
 ::view-transition-new(*) {
-  animation-duration: 0.3s;
+  animation-duration: 0.25s;
   animation-timing-function: cubic-bezier(0.19, 1, 0.22, 1);
 }
 
-/* ─── Scrollbar Styling ───────────────────────────────────────── */
-::-webkit-scrollbar {
-  width: 8px;
-  height: 8px;
+html,
+body,
+#root {
+  height: 100%;
 }
 
-::-webkit-scrollbar-track {
-  background: #f1f5f9;
+body {
+  background: radial-gradient(circle at 20% 0%, #2b1308 0%, #0a0a0b 38%, #050506 100%);
+  color: #f5f5f5;
 }
 
-::-webkit-scrollbar-thumb {
-  background: #cbd5e1;
-  border-radius: 4px;
-}
-
-::-webkit-scrollbar-thumb:hover {
-  background: #94a3b8;
-}
-
-/* ─── Input Focus States ──────────────────────────────────────── */
-input[type="text"]:focus,
-input[type="date"]:focus,
-textarea:focus,
-select:focus {
-  outline: none;
-  border-color: var(--color-primary-500) !important;
-  box-shadow: 0 0 0 3px rgba(249, 115, 22, 0.1);
-}
-
-/* ─── Textarea Styles ─────────────────────────────────────────── */
-textarea {
-  font-family: 'Monaco', 'Menlo', monospace;
-  text-rendering: optimizeLegibility;
-}
-
-/* ─── Select Dropdown ─────────────────────────────────────────── */
-select {
-  appearance: none;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23334155' d='M6 9L1 4h10z'/%3E%3C/svg%3E");
-  background-repeat: no-repeat;
-  background-position: right 12px center;
-  padding-right: 36px;
-  background-color: #f8fafc;
-}
-
-select:hover {
-  background-color: #f1f5f9;
-}
-
-/* ─── Checkbox & Radio Styles ─────────────────────────────────── */
-input[type="checkbox"],
-input[type="radio"] {
-  accent-color: var(--color-primary-500);
-  cursor: pointer;
-  transition: all 0.2s ease;
-}
-
-input[type="checkbox"]:hover,
-input[type="radio"]:hover {
-  transform: scale(1.1);
-}
-
-/* ─── Button Base Styles ──────────────────────────────────────── */
-button {
-  transition: all 0.25s cubic-bezier(0.23, 1, 0.320, 1);
-  font-weight: 600;
-  letter-spacing: -0.01em;
-}
-
-button:active {
-  transform: scale(0.98);
-}
-
-button:disabled {
-  opacity: 0.6;
-  cursor: not-allowed;
-}
-
-/* ─── Label Styles ───────────────────────────────────────────── */
-label {
-  transition: color 0.2s ease;
-}
-
-label:hover when adjacent to input {
-  color: var(--color-primary-600);
-}
-
-/* ─── Details Collapse ────────────────────────────────────────── */
-details {
-  overflow: hidden;
-}
-
-details[open] summary {
-  margin-bottom: 1.5rem;
-}
-
-summary {
-  cursor: pointer;
-  user-select: none;
-  transition: all 0.3s ease;
-}
-
-summary::-webkit-details-marker {
-  display: none;
-}
-
-/* ─── Card Styles ─────────────────────────────────────────────── */
-.card-shadow {
-  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.08), 0 1px 2px 0 rgba(0, 0, 0, 0.04);
-}
-
-.card-shadow:hover {
-  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
-}
-
-/* ─── Animation Keyframes ─────────────────────────────────────── */
-@keyframes slideInDown {
-  from {
-    opacity: 0;
-    transform: translateY(-10px);
+@layer components {
+  .cc-shell {
+    @apply min-h-screen;
   }
-  to {
-    opacity: 1;
-    transform: translateY(0);
+  .cc-card {
+    @apply rounded-3xl border border-white/10 bg-white/[0.03] backdrop-blur-sm;
   }
-}
-
-@keyframes slideInUp {
-  from {
-    opacity: 0;
-    transform: translateY(10px);
+  .cc-title {
+    @apply text-2xl font-semibold tracking-tight text-white md:text-3xl;
   }
-  to {
-    opacity: 1;
-    transform: translateY(0);
+  .cc-muted {
+    @apply text-sm text-white/65;
   }
-}
-
-@keyframes pulse-glow {
-  0%, 100% {
-    box-shadow: 0 0 0 0 rgba(249, 115, 22, 0.7);
+  .cc-input {
+    @apply w-full rounded-xl border border-white/15 bg-black/30 px-3 py-2 text-sm text-white outline-none placeholder:text-white/35 focus:border-orange-400;
   }
-  50% {
-    box-shadow: 0 0 0 6px rgba(249, 115, 22, 0);
+  .cc-btn {
+    @apply rounded-xl border border-white/15 bg-white/5 px-4 py-2 text-sm font-medium text-white transition hover:border-orange-400/70 hover:bg-orange-500/15;
   }
-}
-
-@keyframes shimmer {
-  0% {
-    background-position: -1000px 0;
-  }
-  100% {
-    background-position: 1000px 0;
-  }
-}
-
-/* ─── Utility Classes ─────────────────────────────────────────── */
-.animate-slide-in-down {
-  animation: slideInDown 0.4s ease-out;
-}
-
-.animate-slide-in-up {
-  animation: slideInUp 0.4s ease-out;
-}
-
-.animate-pulse-glow {
-  animation: pulse-glow 2s infinite;
-}
-
-.group-open\:text-orange-600:open {
-  color: var(--color-primary-600);
-}
-
-.group-open\:rotate-180 {
-  transition: transform 0.3s ease;
-}
-
-details[open] .group-open\:rotate-180 {
-  transform: rotate(180deg);
-}
-
-/* ─── Gradient Text ───────────────────────────────────────────── */
-.text-gradient {
-  background: linear-gradient(135deg, var(--color-primary-500) 0%, #f97316 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
-}
-
-/* ─── Backdrop Effects ───────────────────────────────────────── */
-.glass-effect {
-  background: rgba(255, 255, 255, 0.7);
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
-  border: 1px solid rgba(255, 255, 255, 0.2);
-}
-
-/* ─── Loading States ─────────────────────────────────────────── */
-.loading-spinner {
-  display: inline-block;
-  width: 20px;
-  height: 20px;
-  border: 3px solid #f1f5f9;
-  border-top: 3px solid var(--color-primary-500);
-  border-radius: 50%;
-  animation: spin 1s linear infinite;
-}
-
-@keyframes spin {
-  0% { transform: rotate(0deg); }
-  100% { transform: rotate(360deg); }
-}
-
-/* ─── Accessibility ──────────────────────────────────────────── */
-@media (prefers-reduced-motion: reduce) {
-  * {
-    animation-duration: 0.01ms !important;
-    animation-iteration-count: 1 !important;
-    transition-duration: 0.01ms !important;
-  }
-}
-
-/* ─── Dark Mode Support ──────────────────────────────────────── */
-@media (prefers-color-scheme: dark) {
-  body {
-    background: linear-gradient(135deg, #1e293b 0%, #1e1b4b 50%, #0f172a 100%);
-    color: #f8fafc;
-  }
-
-  input[type="text"],
-  input[type="date"],
-  textarea,
-  select {
-    background-color: #334155;
-    color: #f8fafc;
-    border-color: #475569;
-  }
-
-  input[type="text"]:focus,
-  input[type="date"]:focus,
-  textarea:focus,
-  select:focus {
-    background-color: #334155;
-    color: #f8fafc;
+  .cc-btn-primary {
+    @apply rounded-xl bg-orange-500 px-4 py-2 text-sm font-semibold text-black transition hover:bg-orange-400;
   }
 }
 
