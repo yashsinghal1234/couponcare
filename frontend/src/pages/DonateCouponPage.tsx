@@ -193,9 +193,8 @@ or just: zomato 50% off"
                     </div>
                     <div className="w-full h-2.5 bg-white rounded-full overflow-hidden border border-zinc-300">
                       <div
-                        className={`h-full bg-gradient-to-r ${
-                          confidencePercent >= 80 ? "from-green-400 to-emerald-500" : "from-yellow-400 to-orange-500"
-                        } transition-all duration-500`}
+                        className={`h-full bg-gradient-to-r ${confidencePercent >= 80 ? "from-green-400 to-emerald-500" : "from-yellow-400 to-orange-500"
+                          } transition-all duration-500`}
                         style={{ width: `${confidencePercent}%` }}
                       />
                     </div>
@@ -233,11 +232,10 @@ or just: zomato 50% off"
               <button
                 onClick={moveToConfirm}
                 disabled={!detection.brand}
-                className={`mt-8 w-full py-3.5 px-6 rounded-xl font-bold text-lg transition-all ${
-                  detection.brand
+                className={`mt-8 w-full py-3.5 px-6 rounded-xl font-bold text-lg transition-all ${detection.brand
                     ? "bg-gradient-to-r from-orange-500 to-red-500 text-white hover:shadow-lg hover:scale-105"
                     : "bg-zinc-200 text-zinc-400 cursor-not-allowed"
-                }`}
+                  }`}
               >
                 Next: Confirm Details →
               </button>
@@ -526,11 +524,10 @@ or just: zomato 50% off"
             <button
               onClick={submit}
               disabled={loading}
-              className={`w-full py-4 px-6 rounded-xl font-bold text-lg transition-all ${
-                loading
+              className={`w-full py-4 px-6 rounded-xl font-bold text-lg transition-all ${loading
                   ? "bg-gray-300 text-gray-600 cursor-not-allowed"
                   : "bg-gradient-to-r from-green-500 to-emerald-600 text-white hover:shadow-xl hover:scale-105"
-              }`}
+                }`}
             >
               {loading ? "Donating... 🎁" : "Donate This Coupon! 🎁"}
             </button>
