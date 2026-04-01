@@ -3,11 +3,12 @@ import { useNavigate } from "react-router-dom";
 
 import { apiPost } from "../lib/api";
 import { getBrandLogo, getOfferImage, improveOfferText } from "../lib/offerHelpers";
-import { detectCoupon, type CouponCategory, type CouponType } from "../lib/detectCoupon";
+import { detectCoupon, detectRewardSource, type CouponCategory, type CouponType, type CouponSource } from "../lib/detectCoupon";
 
 const categories = ["Food", "Grocery", "Entertainment", "Shopping", "Travel", "Payment", "Other"] as const;
 const couponTypes = ["Percentage", "FlatAmount", "Cashback", "FreeShipping", "BuyOne", "OtherDeal"] as const;
 const revealModes = ["donorApproval", "autoRelease"] as const;
+const rewardSources = ["RegularPromo", "HDFCHupi", "PaytmReward", "UPIReward", "DirectBrandReward", "CreditCardReward", "Other"] as const;
 
 export function DonateCouponPage() {
   const navigate = useNavigate();
@@ -29,6 +30,11 @@ export function DonateCouponPage() {
   const [revealMode, setRevealMode] = useState<(typeof revealModes)[number]>("donorApproval");
   const [showDonorName, setShowDonorName] = useState(true);
   const [attestPaymentApp, setAttestPaymentApp] = useState(false);
+  // Reward coupon fields
+  const [isReward, setIsReward] = useState(false);
+  const [rewardSource, setRewardSource] = useState<CouponSource>("RegularPromo");
+  const [rewardTransferable, setRewardTransferable] = useState(true);
+  const [rewardAttestation, setRewardAttestation] = useState(false);
   const [status, setStatus] = useState("");
   const [showOptional, setShowOptional] = useState(false);
 
@@ -58,6 +64,16 @@ export function DonateCouponPage() {
     setRestrictions("");
     setCity("");
     setExpiryDate("");
+    
+    // Handle reward coupon detection
+    if (detection.isReward) {
+      setIsReward(true);
+      setRewardSource(detection.rewardSource || "RegularPromo");
+      setRewardTransferable(detection.transferable);
+      setRewardAttestation(false);
+    } else {
+      setIsReward(false);
+    }
 
     if (detection.isPaymentApp) {
       setAttestPaymentApp(false);
@@ -86,6 +102,10 @@ export function DonateCouponPage() {
       setStatus("Please confirm that this code is transferable before donating.");
       return;
     }
+    if (isReward && rewardTransferable && !rewardAttestation) {
+      setStatus("Please confirm that this reward is available in your account.");
+      return;
+    }
 
     setStatus("Submitting...");
     const polishedValue = improveOfferText(valueDescription);
@@ -102,6 +122,9 @@ export function DonateCouponPage() {
       restrictions: polishedRestrictions || restrictions || undefined,
       revealMode,
       showDonorName,
+      isReward: isReward || undefined,
+      rewardSource: isReward ? rewardSource : undefined,
+      rewardTransferable: isReward ? rewardTransferable : undefined,
     });
 
     if (!r.ok) return setStatus(r.error);
@@ -339,6 +362,76 @@ export function DonateCouponPage() {
             </div>
           </div>
         </details>
+
+        {/* Reward Coupon Detection & Fields */}
+        <div className="border border-white/10 rounded-lg p-4 space-y-3 bg-violet-600/10">
+          <div>
+            <h3 className="text-sm font-semibold text-white mb-2">Is this a reward or cashback coupon?</h3>
+            <p className="text-xs text-white/60 mb-3">Reward coupons come from credit cards, UPI apps, or brand loyalty programs (e.g., HDFC Hupi, Paytm rewards, Lenskart)</p>
+            <label className="flex items-center gap-2">
+              <input
+                type="checkbox"
+                checked={isReward}
+                onChange={(e) => setIsReward(e.target.checked)}
+              />
+              <span className="text-white/80">Yes, this is a reward or cashback coupon</span>
+            </label>
+          </div>
+
+          {isReward && (
+            <div className="space-y-3 pt-2 border-t border-white/20">
+              <label className="block text-sm">
+                <div className="mb-1 text-white/70">Where is this reward from?</div>
+                <select 
+                  className="cc-input text-sm" 
+                  value={rewardSource} 
+                  onChange={(e) => setRewardSource(e.target.value as CouponSource)}
+                >
+                  <option value="RegularPromo">Regular Promo Code</option>
+                  <option value="HDFCHupi">HDFC Hupi Reward</option>
+                  <option value="PaytmReward">Paytm Cashback/Reward</option>
+                  <option value="UPIReward">UPI App Reward (Google Pay, PhonePe, etc.)</option>
+                  <option value="CreditCardReward">Credit Card Reward Points</option>
+                  <option value="DirectBrandReward">Brand Loyalty/Direct Reward</option>
+                  <option value="Other">Other</option>
+                </select>
+              </label>
+
+              <label className="flex items-start gap-2 text-sm">
+                <input
+                  type="checkbox"
+                  checked={rewardTransferable}
+                  onChange={(e) => setRewardTransferable(e.target.checked)}
+                  className="mt-0.5"
+                />
+                <span className="text-white/80">
+                  This reward code can be transferred to another person (account-independent)
+                </span>
+              </label>
+
+              {rewardTransferable && (
+                <label className="flex items-start gap-2 text-sm bg-green-600/20 border border-green-500/40 rounded p-3">
+                  <input
+                    type="checkbox"
+                    checked={rewardAttestation}
+                    onChange={(e) => setRewardAttestation(e.target.checked)}
+                    className="mt-0.5"
+                  />
+                  <span className="text-green-200">
+                    I confirm this reward is in my account and available for transfer to the recipient.
+                  </span>
+                </label>
+              )}
+
+              {!rewardTransferable && (
+                <div className="bg-yellow-600/20 border border-yellow-500/40 rounded p-3 text-xs text-yellow-200">
+                  ⚠ <strong>Note:</strong> Account-bound rewards may require your help to redeem. Recipient may need you to make the purchase on their behalf.
+                </div>
+              )}
+            </div>
+          )}
+        </div>
+
         {detection.isPaymentApp && (
           <div className="bg-red-600/20 border border-red-500/40 rounded-lg p-4 space-y-3">
             <p className="text-sm text-red-200 font-medium">{detection.warning}</p>
