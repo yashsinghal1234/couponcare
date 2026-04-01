@@ -1,3 +1,4 @@
+@import url("https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700&family=Playfair+Display:wght@500;600;700&display=swap");
 @import "tailwindcss";
 
 /* Smooth view transition animations */
@@ -15,13 +16,46 @@ body,
 }
 
 body {
-  background: radial-gradient(circle at 20% 0%, #2b1308 0%, #0a0a0b 38%, #050506 100%);
+  background: radial-gradient(circle at 20% 0%, rgba(255, 255, 255, 0.08) 0%, transparent 40%),
+    radial-gradient(circle at 75% 15%, rgba(255, 255, 255, 0.05) 0%, transparent 45%),
+    #0b0b0d;
   color: #f5f5f5;
+  font-family: "Manrope", "Segoe UI", sans-serif;
 }
 
 @layer components {
   .cc-shell {
     @apply min-h-screen;
+    position: relative;
+  }
+  .cc-shell > * {
+    position: relative;
+    z-index: 2;
+  }
+  .cc-shell-home::after {
+    content: "";
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: clamp(520px, 90vh, 860px);
+    background-image: url("https://i.pinimg.com/1200x/73/c0/91/73c091796930464678f2c527b2e97ff6.jpg");
+    background-size: cover;
+    background-position: center top;
+    filter: grayscale(100%) contrast(1.05) brightness(0.9);
+    opacity: 0.6;
+    z-index: 0;
+    pointer-events: none;
+  }
+  .cc-shell::before {
+    content: "";
+    position: fixed;
+    inset: 0;
+    background-image: radial-gradient(rgba(255, 255, 255, 0.05) 1px, transparent 0);
+    background-size: 28px 28px;
+    opacity: 0.18;
+    pointer-events: none;
+    z-index: 1;
   }
   .cc-card {
     @apply rounded-3xl border border-white/10 bg-white/[0.03] backdrop-blur-sm;
@@ -33,13 +67,219 @@ body {
     @apply text-sm text-white/65;
   }
   .cc-input {
-    @apply w-full rounded-xl border border-white/15 bg-black/30 px-3 py-2 text-sm text-white outline-none placeholder:text-white/35 focus:border-orange-400;
+    @apply w-full rounded-full border border-white/15 bg-black/30 px-4 py-2.5 text-sm text-white outline-none placeholder:text-white/35 focus:border-white/60;
   }
   .cc-btn {
-    @apply rounded-xl border border-white/15 bg-white/5 px-4 py-2 text-sm font-medium text-white transition hover:border-orange-400/70 hover:bg-orange-500/15;
+    @apply rounded-full border border-white/20 bg-white/5 px-5 py-2 text-sm font-medium text-white transition hover:border-white/60 hover:bg-white/10;
   }
   .cc-btn-primary {
-    @apply rounded-xl bg-orange-500 px-4 py-2 text-sm font-semibold text-black transition hover:bg-orange-400;
+    @apply rounded-full bg-white px-6 py-2.5 text-sm font-semibold text-black transition hover:bg-white/90;
+  }
+  .cc-header {
+    @apply sticky top-0 z-20 bg-black/25 backdrop-blur-md;
+  }
+  .cc-header-inner {
+    @apply mx-auto flex max-w-6xl items-center justify-between gap-4 px-6 py-6;
+  }
+  .cc-logo {
+    font-family: "Playfair Display", "Manrope", serif;
+    font-size: 1.05rem;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: #f8f8f8;
+  }
+  .cc-nav {
+    @apply hidden items-center gap-5 md:flex;
+  }
+  .cc-nav-actions {
+    @apply flex items-center gap-3;
+  }
+  .cc-nav-link {
+    @apply text-xs font-semibold uppercase tracking-[0.22em] text-white/70 transition hover:text-white;
+  }
+  .cc-nav-link-active {
+    @apply text-white;
+  }
+  .cc-nav-link-cta {
+    @apply rounded-full border border-white/30 px-4 py-2 text-xs font-semibold uppercase tracking-[0.22em] text-white transition hover:border-white/70;
+  }
+  .cc-hero-page {
+    @apply flex min-h-[calc(100vh-140px)] flex-col items-center justify-center gap-10 py-10;
+  }
+  .cc-hero-wrap {
+    position: relative;
+    width: 100%;
+    border-radius: 36px;
+    padding: 0;
+    background-size: cover;
+    background-position: center top;
+    box-shadow: 0 30px 80px rgba(0, 0, 0, 0.45);
+    overflow: hidden;
+  }
+  .cc-hero-wrap::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(circle at 50% 35%, rgba(0, 0, 0, 0.2), rgba(0, 0, 0, 0.7) 70%);
+    z-index: 0;
+  }
+  .cc-hero {
+    @apply relative flex w-full flex-col items-center gap-10 text-center;
+    min-height: 680px;
+    padding-bottom: 260px;
+    isolation: isolate;
+    --hero-circle-size: clamp(320px, 60vw, 560px);
+    --hero-circle-y: 20%;
+    --hero-cta-y: 50%;
+    background-size: cover;
+    background-position: center;
+    border-radius: inherit;
+    overflow: hidden;
+    z-index: 1;
+  }
+  .cc-hero::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(circle at 50% 35%, rgba(0, 0, 0, 0.05), rgba(0, 0, 0, 0.6) 65%);
+    z-index: 0;
+  }
+  .cc-hero-copy {
+    @apply max-w-3xl space-y-5;
+    position: relative;
+    z-index: 2;
+    padding-top: 72px;
+  }
+  .cc-hero-text {
+    mix-blend-mode: normal;
+  }
+  .cc-hero-kicker {
+    @apply text-xs uppercase tracking-[0.35em] text-white/45;
+  }
+  .cc-hero-title {
+    font-family: "Playfair Display", "Manrope", serif;
+    font-size: clamp(2.2rem, 4vw, 3.4rem);
+    line-height: 1.05;
+    color: #f8f8f8;
+  }
+  .cc-hero-subtitle {
+    @apply text-sm text-white/55 md:text-base;
+  }
+  .cc-hero-text {
+    position: relative;
+  }
+  .cc-cta {
+    @apply inline-flex items-center justify-center rounded-full bg-white px-6 py-3 text-sm font-semibold text-black transition hover:bg-white/90;
+  }
+  .cc-hero-cta {
+    position: absolute;
+    left: 50%;
+    top: var(--hero-cta-y);
+    transform: translate(-50%, -50%);
+    z-index: 2;
+    box-shadow: 0 12px 30px rgba(0, 0, 0, 0.35);
+  }
+  .cc-hero-art {
+    position: absolute;
+    left: 50%;
+    top: 18%;
+    transform: translate(-50%, -10%);
+    width: min(900px, 92vw);
+    z-index: 1;
+    pointer-events: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .cc-hero-art::before {
+    content: "";
+    position: absolute;
+    inset: -8% 6% -8% 6%;
+    background: transparent;
+    opacity: 0;
+    pointer-events: none;
+  }
+  .cc-hero-image {
+    width: 100%;
+    border-radius: 0;
+    display: block;
+    mix-blend-mode: multiply;
+    opacity: 0.95;
+    filter: grayscale(100%) contrast(1.35) brightness(1.35)
+      drop-shadow(0 30px 70px rgba(0, 0, 0, 0.55))
+      drop-shadow(0 0 60px rgba(255, 255, 255, 0.4));
+    mask-image: radial-gradient(circle at 50% 50%, black 55%, transparent 78%);
+    -webkit-mask-image: radial-gradient(circle at 50% 50%, black 55%, transparent 78%);
+    position: relative;
+    z-index: 1;
+  }
+  .cc-hero-placeholder {
+    @apply flex items-center justify-center border border-white/10 text-xs uppercase tracking-[0.3em] text-white/50;
+    min-height: 320px;
+    background: radial-gradient(circle at 30% 30%, rgba(255, 255, 255, 0.12), transparent 60%);
+  }
+  .cc-brand-row {
+    @apply flex flex-wrap items-center justify-center gap-3;
+  }
+  .cc-brand-chip {
+    @apply rounded-full border border-white/15 px-4 py-1 text-xs uppercase tracking-[0.22em] text-white/50;
+  }
+  .cc-cursor {
+    position: fixed;
+    left: 0;
+    top: 0;
+    width: 26px;
+    height: 26px;
+    border: 2px solid rgba(255, 255, 255, 0.9);
+    border-radius: 999px;
+    transform: translate(-50%, -50%);
+    pointer-events: none;
+    z-index: 9999;
+    transition: width 0.15s ease, height 0.15s ease, border-color 0.15s ease,
+      background-color 0.15s ease, box-shadow 0.15s ease;
+    background-color: transparent;
+  }
+  .cc-cursor--active {
+    width: 56px;
+    height: 56px;
+    border-color: rgba(255, 255, 255, 0.95);
+    box-shadow: 0 0 22px rgba(255, 255, 255, 0.35);
+  }
+  .cc-cursor--invert {
+    border-color: rgba(10, 10, 12, 0.9);
+    background-color: rgba(10, 10, 12, 0.65);
+    box-shadow: 0 0 22px rgba(10, 10, 12, 0.5);
+  }
+}
+
+@media (pointer: fine) {
+  body,
+  a,
+  button {
+    cursor: none;
+  }
+}
+
+@media (pointer: coarse) {
+  .cc-cursor {
+    display: none;
+  }
+}
+
+@media (max-width: 768px) {
+  .cc-hero {
+    min-height: 600px;
+    padding-bottom: 200px;
+    --hero-circle-size: clamp(260px, 72vw, 440px);
+    --hero-circle-y: 26%;
+    --hero-cta-y: 50%;
+  }
+  .cc-hero-copy {
+    padding-top: 56px;
+  }
+  .cc-hero-art {
+    top: 22%;
+    transform: translate(-50%, -12%);
   }
 }
 

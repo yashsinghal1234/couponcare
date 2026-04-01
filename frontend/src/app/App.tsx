@@ -1,6 +1,6 @@
 import type { ReactElement } from "react";
 import { useEffect, useState } from "react";
-import { BrowserRouter, Navigate, NavLink, Route, Routes } from "react-router-dom";
+import { BrowserRouter, Navigate, NavLink, Route, Routes, useLocation } from "react-router-dom";
 
 import { clearToken, getToken, onAuthChanged } from "../lib/api";
 import { SignInPage } from "../pages/AuthPage";
@@ -12,66 +12,103 @@ import { HomePage } from "../pages/HomePage";
 import { ProfilePage } from "../pages/ProfilePage";
 
 export function App() {
+  return (
+    <BrowserRouter>
+      <AppShell />
+    </BrowserRouter>
+  );
+}
+
+function AppShell() {
+  const location = useLocation();
+  const isHome = location.pathname === "/";
   const [isAuthed, setIsAuthed] = useState(Boolean(getToken()));
   useEffect(() => onAuthChanged(() => setIsAuthed(Boolean(getToken()))), []);
 
+  useEffect(() => {
+    if (!window.matchMedia("(pointer: fine)").matches) return;
+
+    const cursor = document.createElement("div");
+    cursor.className = "cc-cursor";
+    document.body.appendChild(cursor);
+
+    const move = (event: MouseEvent) => {
+      cursor.style.left = `${event.clientX}px`;
+      cursor.style.top = `${event.clientY}px`;
+
+      const el = document.elementFromPoint(event.clientX, event.clientY) as HTMLElement | null;
+      const interactive = el?.closest("a, button, .cc-cursor-target") as HTMLElement | null;
+      const isActive = Boolean(interactive);
+      cursor.classList.toggle("cc-cursor--active", isActive);
+
+      const isInvert =
+        interactive?.classList.contains("cc-btn-primary") ||
+        interactive?.classList.contains("cc-cta") ||
+        interactive?.classList.contains("cc-nav-link-cta");
+      cursor.classList.toggle("cc-cursor--invert", Boolean(isInvert));
+    };
+
+    window.addEventListener("mousemove", move);
+
+    return () => {
+      window.removeEventListener("mousemove", move);
+      cursor.remove();
+    };
+  }, []);
+
   const navClass = ({ isActive }: { isActive: boolean }) =>
-    `rounded-full px-3 py-1.5 text-sm transition ${isActive ? "bg-orange-500 text-black" : "text-white/75 hover:bg-white/10 hover:text-white"}`;
+    `cc-nav-link ${isActive ? "cc-nav-link-active" : ""}`;
 
   return (
-    <BrowserRouter>
-      <div className="cc-shell">
-        <header className="sticky top-0 z-20 border-b border-white/10 bg-black/30 backdrop-blur-md">
-          <div className="mx-auto flex max-w-6xl items-center justify-between gap-3 px-4 py-4">
-            <NavLink to="/" className="text-lg font-semibold tracking-tight text-white">
-              CouponCare
+    <div className={`cc-shell ${isHome ? "cc-shell-home" : ""}`}>
+      <header className="cc-header">
+        <div className="cc-header-inner">
+          <NavLink to="/" className="cc-logo">
+            CouponCare
+          </NavLink>
+          <nav className="cc-nav">
+            <NavLink to="/browse" className={navClass}>
+              Browse
             </NavLink>
-            <nav className="flex items-center gap-2">
-              <NavLink to="/browse" className={navClass}>
-                Browse
-              </NavLink>
-              <NavLink to="/donate" className={navClass}>
-                Donate
-              </NavLink>
-              <NavLink to="/requests" className={navClass}>
-                Requests
-              </NavLink>
-              {isAuthed ? (
-                <>
-                  <NavLink to="/profile" className={navClass}>
-                    Profile
-                  </NavLink>
-                  <button
-                    className="rounded-full px-3 py-1.5 text-sm text-white/75 transition hover:bg-white/10 hover:text-white"
-                    type="button"
-                    onClick={() => clearToken()}
-                  >
-                    Logout
-                  </button>
-                </>
-              ) : (
-                <NavLink to="/signin" className={navClass}>
-                  Sign in
+            <NavLink to="/donate" className={navClass}>
+              Donate
+            </NavLink>
+            <NavLink to="/requests" className={navClass}>
+              Requests
+            </NavLink>
+          </nav>
+          <div className="cc-nav-actions">
+            {isAuthed ? (
+              <>
+                <NavLink to="/profile" className={navClass}>
+                  Profile
                 </NavLink>
-              )}
-            </nav>
+                <button className="cc-btn" type="button" onClick={() => clearToken()}>
+                  Logout
+                </button>
+              </>
+            ) : (
+              <NavLink to="/signin" className="cc-nav-link-cta">
+                Sign in
+              </NavLink>
+            )}
           </div>
-        </header>
+        </div>
+      </header>
 
-        <main className="mx-auto max-w-6xl px-4 py-6">
-          <Routes>
-            <Route path="/" element={<HomePage />} />
-            <Route path="/signin" element={<SignInPage />} />
-            <Route path="/auth" element={<Navigate to="/signin" replace />} />
-            <Route path="/donate" element={<ProtectedRoute><DonateCouponPage /></ProtectedRoute>} />
-            <Route path="/browse" element={<BrowseCouponsPage />} />
-            <Route path="/coupons/:id" element={<CouponDetailPage />} />
-            <Route path="/requests" element={<ProtectedRoute><IncomingRequestsPage /></ProtectedRoute>} />
-            <Route path="/profile" element={<ProtectedRoute><ProfilePage /></ProtectedRoute>} />
-          </Routes>
-        </main>
-      </div>
-    </BrowserRouter>
+      <main className="mx-auto max-w-6xl px-6 py-6">
+        <Routes>
+          <Route path="/" element={<HomePage />} />
+          <Route path="/signin" element={<SignInPage />} />
+          <Route path="/auth" element={<Navigate to="/signin" replace />} />
+          <Route path="/donate" element={<ProtectedRoute><DonateCouponPage /></ProtectedRoute>} />
+          <Route path="/browse" element={<BrowseCouponsPage />} />
+          <Route path="/coupons/:id" element={<CouponDetailPage />} />
+          <Route path="/requests" element={<ProtectedRoute><IncomingRequestsPage /></ProtectedRoute>} />
+          <Route path="/profile" element={<ProtectedRoute><ProfilePage /></ProtectedRoute>} />
+        </Routes>
+      </main>
+    </div>
   );
 }
 
