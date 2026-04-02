@@ -56,7 +56,7 @@ export function BrowseCouponsPage() {
   }, [query]);
 
   return (
-    <div className="space-y-4">
+    <div className="cc-page space-y-4">
       <div>
         <h1 className="cc-title">Browse coupons</h1>
         <p className="cc-muted mt-1">Find active coupons sorted by nearest expiry.</p>
@@ -82,7 +82,11 @@ export function BrowseCouponsPage() {
       <div className="grid gap-4 md:grid-cols-2">
         {items.map((c, idx) => (
           <article key={c.id} className="cc-card overflow-hidden">
-            <img src={couponImages[idx % couponImages.length]} alt={c.brand} className="h-36 w-full object-cover" />
+            <img
+              src={couponImages[idx % couponImages.length]}
+              alt={c.brand}
+              className="cc-media h-36 w-full object-cover"
+            />
             <div className="space-y-3 p-4">
               <div className="min-w-0">
                 <div className="flex items-center gap-2 text-lg font-semibold tracking-tight">

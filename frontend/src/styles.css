@@ -38,12 +38,12 @@ body {
     top: 0;
     left: 0;
     right: 0;
-    height: clamp(520px, 90vh, 860px);
-    background-image: url("https://i.pinimg.com/1200x/73/c0/91/73c091796930464678f2c527b2e97ff6.jpg");
+    height: clamp(720px, 110vh, 1200px);
+    background-image: url("https://i.pinimg.com/originals/7b/d8/f3/7bd8f39c6f9ebc423653248d65260e0d.gif");
     background-size: cover;
     background-position: center top;
-    filter: grayscale(100%) contrast(1.05) brightness(0.9);
-    opacity: 0.6;
+    filter: grayscale(100%) contrast(1.05) brightness(1.55);
+    opacity: 0.95;
     z-index: 0;
     pointer-events: none;
   }
@@ -60,6 +60,35 @@ body {
   .cc-card {
     @apply rounded-3xl border border-white/10 bg-white/[0.03] backdrop-blur-sm;
   }
+  .cc-page {
+    color: #f5f5f5;
+  }
+  .cc-page .bg-white {
+    background-color: rgba(255, 255, 255, 0.04);
+  }
+  .cc-page .bg-slate-50,
+  .cc-page .bg-slate-100 {
+    background-color: rgba(255, 255, 255, 0.03);
+  }
+  .cc-page .border-zinc-200,
+  .cc-page .border-zinc-300 {
+    border-color: rgba(255, 255, 255, 0.15);
+  }
+  .cc-page .text-zinc-900,
+  .cc-page .text-zinc-800 {
+    color: #f8fafc;
+  }
+  .cc-page .text-zinc-700 {
+    color: rgba(255, 255, 255, 0.72);
+  }
+  .cc-page .text-zinc-600,
+  .cc-page .text-zinc-500,
+  .cc-page .text-zinc-400 {
+    color: rgba(255, 255, 255, 0.6);
+  }
+  .cc-media {
+    filter: grayscale(100%) contrast(1.05) brightness(0.85);
+  }
   .cc-title {
     @apply text-2xl font-semibold tracking-tight text-white md:text-3xl;
   }
@@ -74,6 +103,37 @@ body {
   }
   .cc-btn-primary {
     @apply rounded-full bg-white px-6 py-2.5 text-sm font-semibold text-black transition hover:bg-white/90;
+  }
+  .cc-panel {
+    @apply rounded-3xl border border-white/10 bg-white/[0.03] backdrop-blur-sm;
+  }
+  .cc-field {
+    @apply w-full rounded-xl border border-white/15 bg-black/35 px-3 py-3 text-sm text-white outline-none placeholder:text-white/35 focus:border-white/60;
+  }
+  .cc-textarea {
+    @apply w-full rounded-xl border border-white/15 bg-black/35 px-3 py-3 text-sm text-white outline-none placeholder:text-white/35 focus:border-white/60;
+  }
+  .cc-select {
+    @apply w-full rounded-xl border border-white/15 bg-black/35 px-3 py-3 text-sm text-white outline-none placeholder:text-white/35 focus:border-white/60;
+  }
+  .cc-select-compact {
+    padding: 0.45rem 0.9rem;
+    font-size: 0.75rem;
+    border-radius: 999px;
+  }
+  .cc-tag {
+    @apply inline-flex items-center gap-1.5 rounded-full border border-white/15 bg-white/5 px-3 py-1.5 text-xs font-semibold text-white/80;
+  }
+  .cc-alert {
+    @apply rounded-xl border border-white/15 bg-black/35 p-3 text-sm text-white/80;
+  }
+  .cc-alert-warning {
+    border-color: rgba(251, 191, 36, 0.4);
+    color: #fcd34d;
+  }
+  .cc-alert-error {
+    border-color: rgba(248, 113, 113, 0.5);
+    color: #fecaca;
   }
   .cc-header {
     @apply sticky top-0 z-20 bg-black/25 backdrop-blur-md;
@@ -94,33 +154,132 @@ body {
   .cc-nav-actions {
     @apply flex items-center gap-3;
   }
+  .cc-avatar-btn {
+    @apply inline-flex items-center justify-center rounded-full border border-white/30 bg-white/5 transition hover:border-white/70;
+    width: 38px;
+    height: 38px;
+    background-size: cover;
+    background-position: center;
+    position: relative;
+    overflow: hidden;
+  }
+  .cc-avatar-core {
+    position: absolute;
+    inset: 3px;
+    border-radius: 999px;
+    background: linear-gradient(135deg, rgba(12, 12, 14, 0.2) 0%, rgba(248, 250, 252, 0.8) 100%);
+    mix-blend-mode: screen;
+    opacity: 0.4;
+  }
+  .cc-avatar-preview {
+    width: 42px;
+    height: 42px;
+    border-radius: 999px;
+    border: 1px solid rgba(255, 255, 255, 0.35);
+    background-size: cover;
+    background-position: center;
+  }
+  .cc-avatar-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+    gap: 12px;
+  }
+  .cc-avatar-option {
+    @apply flex items-center gap-3 rounded-xl border border-white/15 bg-white/5 px-3 py-2 text-xs text-white/75 transition hover:border-white/40;
+  }
+  .cc-avatar-option--active {
+    border-color: rgba(255, 255, 255, 0.7);
+    color: #f8fafc;
+  }
+  .cc-avatar-thumb {
+    width: 34px;
+    height: 34px;
+    border-radius: 999px;
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    background-size: cover;
+    background-position: center;
+  }
   .cc-nav-link {
     @apply text-xs font-semibold uppercase tracking-[0.22em] text-white/70 transition hover:text-white;
+    display: inline-flex;
+    align-items: center;
   }
   .cc-nav-link-active {
     @apply text-white;
   }
   .cc-nav-link-cta {
     @apply rounded-full border border-white/30 px-4 py-2 text-xs font-semibold uppercase tracking-[0.22em] text-white transition hover:border-white/70;
+    display: inline-flex;
+    align-items: center;
+  }
+  .cc-nav-link:hover,
+  .cc-nav-link-cta:hover {
+    transform: translateY(-3px);
   }
   .cc-hero-page {
     @apply flex min-h-[calc(100vh-140px)] flex-col items-center justify-center gap-10 py-10;
+    width: 100%;
+  }
+  .cc-hero-spacer {
+    height: min(720px, 78vh);
+    width: 100%;
+  }
+  .cc-strip-section {
+    width: min(1120px, 96vw);
+    margin: 10px auto 0;
+  }
+  .cc-strip {
+    overflow: hidden;
+    border-radius: 999px;
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    background: rgba(0, 0, 0, 0.35);
+    padding: 12px 0;
+  }
+  .cc-strip-track {
+    display: flex;
+    align-items: center;
+    gap: 28px;
+    width: max-content;
+    animation: cc-strip 24s linear infinite;
+  }
+  .cc-strip-item {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    padding: 6px 16px;
+    border-radius: 999px;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    color: rgba(255, 255, 255, 0.75);
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    letter-spacing: 0.2em;
+    background: rgba(0, 0, 0, 0.35);
+    white-space: nowrap;
+  }
+  .cc-strip-logo {
+    width: 18px;
+    height: 18px;
   }
   .cc-hero-wrap {
-    position: relative;
-    width: 100%;
+    position: fixed;
+    top: 96px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: min(1120px, 96vw);
+    height: min(720px, 78vh);
     border-radius: 36px;
     padding: 0;
     background-size: cover;
     background-position: center top;
     box-shadow: 0 30px 80px rgba(0, 0, 0, 0.45);
     overflow: hidden;
+    z-index: 2;
   }
   .cc-hero-wrap::before {
     content: "";
     position: absolute;
     inset: 0;
-    background: radial-gradient(circle at 50% 35%, rgba(0, 0, 0, 0.2), rgba(0, 0, 0, 0.7) 70%);
+    background: radial-gradient(circle at 50% 35%, rgba(0, 0, 0, 0.08), rgba(0, 0, 0, 0.35) 70%);
     z-index: 0;
   }
   .cc-hero {
@@ -130,7 +289,7 @@ body {
     isolation: isolate;
     --hero-circle-size: clamp(320px, 60vw, 560px);
     --hero-circle-y: 20%;
-    --hero-cta-y: 50%;
+    --hero-cta-y: 53%;
     background-size: cover;
     background-position: center;
     border-radius: inherit;
@@ -148,7 +307,7 @@ body {
     @apply max-w-3xl space-y-5;
     position: relative;
     z-index: 2;
-    padding-top: 72px;
+    padding-top: 36px;
   }
   .cc-hero-text {
     mix-blend-mode: normal;
@@ -175,7 +334,7 @@ body {
     position: absolute;
     left: 50%;
     top: var(--hero-cta-y);
-    transform: translate(-50%, -50%);
+    transform: translate(-40%, -60%);
     z-index: 2;
     box-shadow: 0 12px 30px rgba(0, 0, 0, 0.35);
   }
@@ -217,12 +376,6 @@ body {
     @apply flex items-center justify-center border border-white/10 text-xs uppercase tracking-[0.3em] text-white/50;
     min-height: 320px;
     background: radial-gradient(circle at 30% 30%, rgba(255, 255, 255, 0.12), transparent 60%);
-  }
-  .cc-brand-row {
-    @apply flex flex-wrap items-center justify-center gap-3;
-  }
-  .cc-brand-chip {
-    @apply rounded-full border border-white/15 px-4 py-1 text-xs uppercase tracking-[0.22em] text-white/50;
   }
   .cc-cursor {
     position: fixed;
@@ -282,4 +435,14 @@ body {
     transform: translate(-50%, -12%);
   }
 }
+
+@keyframes cc-strip {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(-50%);
+  }
+}
+
 

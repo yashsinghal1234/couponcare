@@ -131,26 +131,24 @@ export function DonateCouponPage() {
   // ─── STAGE 1: PASTE ────────────────────────────
   if (stage === "paste") {
     return (
-      <main className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-slate-100 px-4 py-8">
+      <main className="cc-page min-h-screen px-4 py-10">
         <div className="max-w-2xl mx-auto">
           {/* Header */}
           <div className="text-center mb-10">
-            <h1 className="text-4xl sm:text-5xl font-extrabold text-zinc-900 mb-3">
-              🎁 Share Your Coupon
+            <p className="text-xs uppercase tracking-[0.35em] text-white/45 mb-3">Donate a coupon</p>
+            <h1 className="text-4xl sm:text-5xl font-semibold text-white mb-3">
+              Share your coupon
             </h1>
-            <p className="text-lg text-zinc-500">
-              Paste or type the coupon details. We'll auto-detect everything.
+            <p className="text-lg text-white/65">
+              Paste or type the coupon details. We will auto-detect the brand, type, and reward source.
             </p>
           </div>
 
           {/* Main Card */}
-          <div className="bg-white rounded-3xl shadow-lg border border-zinc-200 overflow-hidden">
-            {/* Top bar with gradient */}
-            <div className={`h-2 bg-gradient-to-r ${CATEGORY_COLORS.Food}`} />
-
+          <div className="cc-panel overflow-hidden shadow-[0_30px_80px_rgba(0,0,0,0.35)]">
             <div className="p-8 sm:p-10">
               {/* Input */}
-              <label className="block mb-2 text-sm font-semibold text-zinc-700">
+              <label className="block mb-2 text-sm font-semibold text-white/70">
                 Paste or type coupon details
               </label>
               <textarea
@@ -159,27 +157,27 @@ export function DonateCouponPage() {
                 placeholder="e.g., Swiggy ₹100 off on orders above ₹299
 or paste: SWIGGY50
 or just: zomato 50% off"
-                className="w-full bg-slate-50 border-2 border-zinc-200 rounded-xl p-4 font-mono text-sm focus:border-orange-400 focus:outline-none focus:ring-2 focus:ring-orange-200 transition resize-none h-28"
+                className="cc-textarea h-28 font-mono"
               />
 
               {/* Detection Results */}
               {detection.brand && (
-                <div className="mt-7 space-y-4 p-5 bg-gradient-to-br from-blue-50 to-cyan-50 rounded-2xl border-2 border-blue-200">
+                <div className="mt-7 space-y-4 p-5 cc-panel border border-white/10">
                   {/* Brand + Logo */}
                   <div className="flex items-center gap-3">
                     {logo && <img src={logo} alt={detection.brand} className="w-8 h-8 object-contain" />}
                     <div>
-                      <p className="text-xs text-zinc-500 uppercase tracking-widest font-bold">Brand Detected</p>
-                      <p className="text-xl font-bold text-zinc-900">{detection.brand}</p>
+                      <p className="text-xs text-white/50 uppercase tracking-widest font-bold">Brand detected</p>
+                      <p className="text-xl font-semibold text-white">{detection.brand}</p>
                     </div>
                   </div>
 
                   {/* Category + Type badges */}
                   <div className="flex flex-wrap gap-2">
-                    <span className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-white border border-zinc-300 rounded-full text-xs font-semibold text-zinc-700">
+                    <span className="cc-tag">
                       📂 {detection.category}
                     </span>
-                    <span className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold border ${typeMeta.bg} border-zinc-300 ${typeMeta.text}`}>
+                    <span className="cc-tag">
                       {typeMeta.emoji} {detection.type}
                     </span>
                   </div>
@@ -187,10 +185,10 @@ or just: zomato 50% off"
                   {/* Confidence bar */}
                   <div>
                     <div className="flex items-center justify-between mb-2">
-                      <p className="text-xs font-semibold text-zinc-600">Detection Confidence</p>
-                      <p className="text-xs font-bold text-zinc-900">{confidencePercent}%</p>
+                      <p className="text-xs font-semibold text-white/60">Detection confidence</p>
+                      <p className="text-xs font-bold text-white/80">{confidencePercent}%</p>
                     </div>
-                    <div className="w-full h-2.5 bg-white rounded-full overflow-hidden border border-zinc-300">
+                    <div className="w-full h-2.5 bg-white/10 rounded-full overflow-hidden border border-white/10">
                       <div
                         className={`h-full bg-gradient-to-r ${confidencePercent >= 80 ? "from-green-400 to-emerald-500" : "from-yellow-400 to-orange-500"
                           } transition-all duration-500`}
@@ -201,11 +199,11 @@ or just: zomato 50% off"
 
                   {/* Reward detection */}
                   {detection.isReward && (
-                    <div className="p-3 bg-purple-100 border border-purple-300 rounded-lg">
-                      <p className="text-sm font-semibold text-purple-900">
+                    <div className="cc-alert">
+                      <p className="text-sm font-semibold text-purple-200">
                         💳 This looks like a reward/cashback coupon
                       </p>
-                      <p className="text-xs text-purple-800 mt-1">
+                      <p className="text-xs text-purple-200/80 mt-1">
                         Source: {detection.rewardSource || "Unknown"} · {detection.transferable ? "✅ Transferable" : "⚠️ May need your help"}
                       </p>
                     </div>
@@ -213,8 +211,8 @@ or just: zomato 50% off"
 
                   {/* Warnings */}
                   {detection.warning && (
-                    <div className="p-3 bg-amber-100 border border-amber-300 rounded-lg">
-                      <p className="text-sm font-semibold text-amber-900">⚠️ {detection.warning}</p>
+                    <div className="cc-alert cc-alert-warning">
+                      <p className="text-sm font-semibold">⚠️ {detection.warning}</p>
                     </div>
                   )}
                 </div>
@@ -222,8 +220,8 @@ or just: zomato 50% off"
 
               {/* Status message */}
               {status && (
-                <div className="mt-6 p-4 bg-red-50 border-2 border-red-300 rounded-xl">
-                  <p className="text-sm font-semibold text-red-900">{status}</p>
+                <div className="mt-6 cc-alert cc-alert-error">
+                  <p className="text-sm font-semibold">{status}</p>
                 </div>
               )}
 
@@ -231,16 +229,16 @@ or just: zomato 50% off"
               <button
                 onClick={moveToConfirm}
                 disabled={!detection.brand}
-                className={`mt-8 w-full py-3.5 px-6 rounded-xl font-bold text-lg transition-all ${detection.brand
-                    ? "bg-gradient-to-r from-orange-500 to-red-500 text-white hover:shadow-lg hover:scale-105"
-                    : "bg-zinc-200 text-zinc-400 cursor-not-allowed"
+                className={`mt-8 w-full py-3.5 px-6 rounded-full text-lg font-semibold transition-all ${detection.brand
+                    ? "cc-btn-primary hover:scale-[1.01]"
+                    : "cc-btn opacity-40 cursor-not-allowed"
                   }`}
               >
                 Next: Confirm Details →
               </button>
 
               {/* Info footer */}
-              <p className="text-xs text-zinc-400 text-center mt-6">
+              <p className="text-xs text-white/45 text-center mt-6">
                 💡 Tip: The more details you paste, the better we detect. E.g., "Swiggy ₹100 off on orders above ₹299"
               </p>
             </div>
@@ -252,26 +250,26 @@ or just: zomato 50% off"
 
   // ─── STAGE 2: CONFIRM ───────────────────────────
   return (
-    <main className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-slate-100 px-4 py-8">
+    <main className="cc-page min-h-screen px-4 py-10">
       <div className="max-w-3xl mx-auto">
         {/* Header */}
         <div className="text-center mb-10">
           <button
             onClick={backToStage1}
-            className="text-sm text-zinc-500 hover:text-zinc-700 font-semibold mb-4 inline-flex items-center gap-1.5"
+            className="text-sm text-white/60 hover:text-white font-semibold mb-4 inline-flex items-center gap-1.5"
           >
             ← Back to paste
           </button>
-          <h1 className="text-4xl font-extrabold text-zinc-900 mb-3">
-            ✅ Almost there!
+          <h1 className="text-4xl font-semibold text-white mb-3">
+            Almost there
           </h1>
-          <p className="text-lg text-zinc-500">
+          <p className="text-lg text-white/65">
             Just fill in a few more details.
           </p>
         </div>
 
         {/* Main Card */}
-        <div className="bg-white rounded-3xl shadow-lg border border-zinc-200 overflow-hidden">
+        <div className="cc-panel overflow-hidden">
           {/* Brand banner */}
           <div className={`h-24 bg-gradient-to-r ${gradientClass} relative flex items-center px-8`}>
             {logo && (
@@ -286,13 +284,13 @@ or just: zomato 50% off"
           <div className="p-8 sm:p-10 space-y-8">
             {/* Section 1: Essential Fields */}
             <div>
-              <h2 className="text-lg font-bold text-zinc-900 mb-5 flex items-center gap-2">
+              <h2 className="text-lg font-bold text-white mb-5 flex items-center gap-2">
                 🔑 Essential Details
               </h2>
               <div className="space-y-5">
                 {/* Code */}
                 <div>
-                  <label className="block text-sm font-semibold text-zinc-700 mb-2">
+                  <label className="block text-sm font-semibold text-white/70 mb-2">
                     Coupon Code <span className="text-red-500">*</span>
                   </label>
                   <input
@@ -300,13 +298,13 @@ or just: zomato 50% off"
                     value={code}
                     onChange={(e) => setCode(e.target.value)}
                     placeholder="e.g., SWIGGY50, SAVE100"
-                    className="w-full bg-slate-50 border-2 border-zinc-200 rounded-xl p-3 font-mono font-semibold focus:border-orange-400 focus:outline-none focus:ring-2 focus:ring-orange-200 transition"
+                    className="cc-field font-mono font-semibold"
                   />
                 </div>
 
                 {/* Value Description */}
                 <div>
-                  <label className="block text-sm font-semibold text-zinc-700 mb-2">
+                  <label className="block text-sm font-semibold text-white/70 mb-2">
                     What's the offer? <span className="text-red-500">*</span>
                   </label>
                   <input
@@ -314,20 +312,20 @@ or just: zomato 50% off"
                     value={valueDescription}
                     onChange={(e) => setValueDescription(e.target.value)}
                     placeholder="e.g., 50% off up to ₹100, Free delivery on orders above ₹299"
-                    className="w-full bg-slate-50 border-2 border-zinc-200 rounded-xl p-3 focus:border-orange-400 focus:outline-none focus:ring-2 focus:ring-orange-200 transition"
+                    className="cc-field"
                   />
                 </div>
 
                 {/* Expiry */}
                 <div>
-                  <label className="block text-sm font-semibold text-zinc-700 mb-2">
+                  <label className="block text-sm font-semibold text-white/70 mb-2">
                     Expires on <span className="text-red-500">*</span>
                   </label>
                   <input
                     type="date"
                     value={expiryDate}
                     onChange={(e) => setExpiryDate(e.target.value)}
-                    className="w-full bg-slate-50 border-2 border-zinc-200 rounded-xl p-3 focus:border-orange-400 focus:outline-none focus:ring-2 focus:ring-orange-200 transition"
+                    className="cc-field"
                   />
                 </div>
               </div>
@@ -335,17 +333,17 @@ or just: zomato 50% off"
 
             {/* Section 2: Coupon Type & Category */}
             <div>
-              <h2 className="text-lg font-bold text-zinc-900 mb-5 flex items-center gap-2">
+              <h2 className="text-lg font-bold text-white mb-5 flex items-center gap-2">
                 🏷️ Coupon Type & Category
               </h2>
               <div className="grid sm:grid-cols-2 gap-5">
                 {/* Type */}
                 <div>
-                  <label className="block text-sm font-semibold text-zinc-700 mb-2">Type</label>
+                  <label className="block text-sm font-semibold text-white/70 mb-2">Type</label>
                   <select
                     value={couponType}
                     onChange={(e) => setCouponType(e.target.value as CouponType)}
-                    className="w-full bg-slate-50 border-2 border-zinc-200 rounded-xl p-3 focus:border-orange-400 focus:outline-none focus:ring-2 focus:ring-orange-200 transition"
+                    className="cc-select"
                   >
                     {couponTypes.map((t) => (
                       <option key={t} value={t}>
@@ -357,11 +355,11 @@ or just: zomato 50% off"
 
                 {/* Category */}
                 <div>
-                  <label className="block text-sm font-semibold text-zinc-700 mb-2">Category</label>
+                  <label className="block text-sm font-semibold text-white/70 mb-2">Category</label>
                   <select
                     value={category}
                     onChange={(e) => setCategory(e.target.value as CouponCategory)}
-                    className="w-full bg-slate-50 border-2 border-zinc-200 rounded-xl p-3 focus:border-orange-400 focus:outline-none focus:ring-2 focus:ring-orange-200 transition"
+                    className="cc-select"
                   >
                     {categories.map((c) => (
                       <option key={c} value={c}>
@@ -375,18 +373,17 @@ or just: zomato 50% off"
 
             {/* Section 3: Reward Coupon Detection */}
             {detection.isReward && (
-              <div className="p-6 bg-gradient-to-br from-purple-50 to-indigo-50 border-2 border-purple-300 rounded-2xl">
-                <h2 className="text-lg font-bold text-purple-900 mb-5 flex items-center gap-2">
-                  💳 Reward/Cashback Coupon
-                </h2>
-                <div className="space-y-4">
-                  {/* Source */}
-                  <div>
-                    <label className="block text-sm font-semibold text-purple-900 mb-2">Where did you get this?</label>
+              <div className="cc-panel p-6 border border-purple-500/40 bg-purple-500/10">
+                <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+                  <h2 className="text-lg font-bold text-purple-200 flex items-center gap-2">
+                    💳 Reward/Cashback Coupon
+                  </h2>
+                  <div className="flex flex-wrap items-center gap-3">
+                    <label className="text-sm font-semibold text-purple-200">Source</label>
                     <select
                       value={rewardSource}
                       onChange={(e) => setRewardSource(e.target.value as CouponSource)}
-                      className="w-full bg-white border-2 border-purple-300 rounded-xl p-3 focus:outline-none focus:ring-2 focus:ring-purple-400 transition"
+                      className="cc-select cc-select-compact"
                     >
                       {rewardSources.map((s) => (
                         <option key={s} value={s}>
@@ -395,9 +392,11 @@ or just: zomato 50% off"
                       ))}
                     </select>
                   </div>
+                </div>
+                <div className="mt-4 space-y-4">
 
                   {/* Transferability */}
-                  <div className="flex items-center gap-3 p-4 bg-white/70 rounded-lg border border-purple-200">
+                  <div className="flex items-center gap-3 p-4 rounded-lg border border-white/15 bg-black/30">
                     <input
                       type="checkbox"
                       checked={rewardTransferable}
@@ -405,14 +404,14 @@ or just: zomato 50% off"
                       id="transferable"
                       className="w-5 h-5 rounded border-zinc-300 text-purple-600"
                     />
-                    <label htmlFor="transferable" className="text-sm font-semibold text-purple-900 cursor-pointer flex-1">
+                    <label htmlFor="transferable" className="text-sm font-semibold text-purple-200 cursor-pointer flex-1">
                       ✅ This reward is transferable (recipient can redeem directly)
                     </label>
                   </div>
 
                   {/* Attestation for non-transferable */}
                   {!rewardTransferable && (
-                    <div className="p-4 bg-amber-100 border-2 border-amber-300 rounded-lg">
+                    <div className="cc-alert cc-alert-warning">
                       <label className="flex items-center gap-3 cursor-pointer">
                         <input
                           type="checkbox"
@@ -433,28 +432,28 @@ or just: zomato 50% off"
             {/* Section 4: Optional Details */}
             <details className="group">
               <summary className="cursor-pointer select-none">
-                <span className="text-lg font-bold text-zinc-900 flex items-center gap-2 group-open:text-orange-600">
+                <span className="text-lg font-bold text-white flex items-center gap-2 group-open:text-white/80">
                   ⚙️ Optional Details
                   <span className="text-zinc-400 group-open:rotate-180 transition-transform">▼</span>
                 </span>
               </summary>
-              <div className="mt-5 space-y-5 p-6 bg-slate-50 rounded-2xl border border-zinc-200">
+              <div className="mt-5 space-y-5 p-6 cc-panel">
                 {/* Restrictions */}
                 <div>
-                  <label className="block text-sm font-semibold text-zinc-700 mb-2">
+                  <label className="block text-sm font-semibold text-white/70 mb-2">
                     Restrictions or terms
                   </label>
                   <textarea
                     value={restrictions}
                     onChange={(e) => setRestrictions(e.target.value)}
                     placeholder="e.g., Not valid in Delhi, only for first-time users"
-                    className="w-full bg-white border-2 border-zinc-200 rounded-xl p-3 focus:border-orange-400 focus:outline-none focus:ring-2 focus:ring-orange-200 transition resize-none h-20"
+                    className="cc-textarea h-20"
                   />
                 </div>
 
                 {/* City */}
                 <div>
-                  <label className="block text-sm font-semibold text-zinc-700 mb-2">
+                  <label className="block text-sm font-semibold text-white/70 mb-2">
                     Available in city
                   </label>
                   <input
@@ -462,17 +461,17 @@ or just: zomato 50% off"
                     value={city}
                     onChange={(e) => setCity(e.target.value)}
                     placeholder="e.g., Delhi, Mumbai, Pan-India"
-                    className="w-full bg-white border-2 border-zinc-200 rounded-xl p-3 focus:border-orange-400 focus:outline-none focus:ring-2 focus:ring-orange-200 transition"
+                    className="cc-field"
                   />
                 </div>
 
                 {/* Reveal mode */}
                 <div>
-                  <label className="block text-sm font-semibold text-zinc-700 mb-2">
+                  <label className="block text-sm font-semibold text-white/70 mb-2">
                     How should the code be shared?
                   </label>
                   <div className="space-y-2">
-                    <label className="flex items-center gap-3 p-3 border-2 border-zinc-200 rounded-xl hover:border-orange-300 cursor-pointer transition">
+                    <label className="flex items-center gap-3 p-3 border border-white/15 rounded-xl hover:border-white/40 cursor-pointer transition">
                       <input
                         type="radio"
                         name="reveal"
@@ -483,7 +482,7 @@ or just: zomato 50% off"
                       />
                       <span className="font-semibold text-zinc-900">I approve each request first</span>
                     </label>
-                    <label className="flex items-center gap-3 p-3 border-2 border-zinc-200 rounded-xl hover:border-orange-300 cursor-pointer transition">
+                    <label className="flex items-center gap-3 p-3 border border-white/15 rounded-xl hover:border-white/40 cursor-pointer transition">
                       <input
                         type="radio"
                         name="reveal"
@@ -498,7 +497,7 @@ or just: zomato 50% off"
                 </div>
 
                 {/* Show donor name */}
-                <label className="flex items-center gap-3 p-3 border-2 border-zinc-200 rounded-xl hover:border-orange-300 cursor-pointer transition">
+                <label className="flex items-center gap-3 p-3 border border-white/15 rounded-xl hover:border-white/40 cursor-pointer transition">
                   <input
                     type="checkbox"
                     checked={showDonorName}
@@ -512,10 +511,8 @@ or just: zomato 50% off"
 
             {/* Status message */}
             {status && (
-              <div className={`p-4 rounded-xl border-2 ${status.includes("❌") ? "bg-red-50 border-red-300" : "bg-amber-50 border-amber-300"}`}>
-                <p className={`text-sm font-semibold ${status.includes("❌") ? "text-red-900" : "text-amber-900"}`}>
-                  {status}
-                </p>
+              <div className={`cc-alert ${status.includes("❌") ? "cc-alert-error" : "cc-alert-warning"}`}>
+                <p className="text-sm font-semibold">{status}</p>
               </div>
             )}
 
@@ -524,8 +521,8 @@ or just: zomato 50% off"
               onClick={submit}
               disabled={loading}
               className={`w-full py-4 px-6 rounded-xl font-bold text-lg transition-all ${loading
-                  ? "bg-gray-300 text-gray-600 cursor-not-allowed"
-                  : "bg-gradient-to-r from-green-500 to-emerald-600 text-white hover:shadow-xl hover:scale-105"
+                ? "bg-gray-300 text-gray-600 cursor-not-allowed"
+                : "bg-gradient-to-r from-green-500 to-emerald-600 text-white hover:shadow-xl hover:scale-105"
                 }`}
             >
               {loading ? "Donating... 🎁" : "Donate This Coupon! 🎁"}

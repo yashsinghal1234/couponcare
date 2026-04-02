@@ -3,7 +3,18 @@ import { Link } from "react-router-dom";
 export function HomePage() {
   const heroImage = (import.meta.env.VITE_HERO_IMAGE as string | undefined) ??
     "https://i.pinimg.com/1200x/39/2c/f4/392cf408ba0887f854a028a252428fcb.jpg";
-  const brandRow = ["Swiggy", "Zomato", "Amazon", "Lenskart", "Myntra", "Paytm", "BookMyShow", "Blinkit"];
+  const brandLogos = [
+    { name: "Swiggy", logo: "https://cdn.simpleicons.org/swiggy/ffffff" },
+    { name: "Zomato", logo: "https://cdn.simpleicons.org/zomato/ffffff" },
+    { name: "Amazon", logo: "https://cdn.simpleicons.org/amazon/ffffff" },
+    { name: "Flipkart", logo: "https://cdn.simpleicons.org/flipkart/ffffff" },
+    { name: "Myntra", logo: "https://cdn.simpleicons.org/myntra/ffffff" },
+    { name: "Lenskart", logo: "https://cdn.simpleicons.org/lenskart/ffffff" },
+    { name: "Paytm", logo: "https://cdn.simpleicons.org/paytm/ffffff" },
+    { name: "PhonePe", logo: "https://cdn.simpleicons.org/phonepe/ffffff" },
+    { name: "BookMyShow", logo: "https://cdn.simpleicons.org/bookmyshow/ffffff" },
+    { name: "Blinkit", logo: "https://cdn.simpleicons.org/blinkit/ffffff" },
+  ];
 
   return (
     <div className="cc-hero-page">
@@ -25,13 +36,21 @@ export function HomePage() {
         </section>
       </div>
 
-      <section className="cc-brand-row">
-        {brandRow.map((brand) => (
-          <span key={brand} className="cc-brand-chip">
-            {brand}
-          </span>
-        ))}
+      <div className="cc-hero-spacer" aria-hidden="true" />
+
+      <section className="cc-strip-section" aria-label="Brand partners">
+        <div className="cc-strip">
+          <div className="cc-strip-track">
+            {[...brandLogos, ...brandLogos].map((brand, index) => (
+              <div className="cc-strip-item" key={`${brand.name}-${index}`}>
+                <img src={brand.logo} alt={brand.name} className="cc-strip-logo" />
+                <span>{brand.name}</span>
+              </div>
+            ))}
+          </div>
+        </div>
       </section>
+
     </div>
   );
 }

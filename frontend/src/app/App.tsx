@@ -23,7 +23,26 @@ function AppShell() {
   const location = useLocation();
   const isHome = location.pathname === "/";
   const [isAuthed, setIsAuthed] = useState(Boolean(getToken()));
+  const [avatarUrl, setAvatarUrl] = useState<string>(
+    "https://i.pinimg.com/736x/b0/bc/be/b0bcbe2b26065f336f6086b4bcd6bea9.jpg"
+  );
   useEffect(() => onAuthChanged(() => setIsAuthed(Boolean(getToken()))), []);
+
+  useEffect(() => {
+    const key = "cc_avatar_url";
+    const fallback = "https://i.pinimg.com/736x/b0/bc/be/b0bcbe2b26065f336f6086b4bcd6bea9.jpg";
+    const syncAvatar = () => {
+      const stored = localStorage.getItem(key);
+      setAvatarUrl(stored || fallback);
+    };
+    syncAvatar();
+    window.addEventListener("cc-avatar-updated", syncAvatar as EventListener);
+    window.addEventListener("storage", syncAvatar);
+    return () => {
+      window.removeEventListener("cc-avatar-updated", syncAvatar as EventListener);
+      window.removeEventListener("storage", syncAvatar);
+    };
+  }, []);
 
   useEffect(() => {
     if (!window.matchMedia("(pointer: fine)").matches) return;
@@ -80,8 +99,14 @@ function AppShell() {
           <div className="cc-nav-actions">
             {isAuthed ? (
               <>
-                <NavLink to="/profile" className={navClass}>
-                  Profile
+                <NavLink
+                  to="/profile"
+                  className="cc-avatar-btn"
+                  aria-label="Profile"
+                  title="Profile"
+                  style={{ backgroundImage: `url(${avatarUrl})` }}
+                >
+                  <span className="cc-avatar-core" aria-hidden="true" />
                 </NavLink>
                 <button className="cc-btn" type="button" onClick={() => clearToken()}>
                   Logout

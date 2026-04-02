@@ -51,7 +51,7 @@ export function IncomingRequestsPage() {
   }
 
   return (
-    <div className="space-y-4">
+    <div className="cc-page space-y-4">
       <div>
         <h1 className="cc-title">Incoming requests</h1>
         <p className="cc-muted mt-1">Review and approve/reject recipient requests.</p>
@@ -64,7 +64,7 @@ export function IncomingRequestsPage() {
             <img
               src="https://images.unsplash.com/photo-1593113598332-cd59a93b6f0f?auto=format&fit=crop&w=1200&q=80"
               alt="Incoming request"
-              className="h-32 w-full object-cover"
+              className="cc-media h-32 w-full object-cover"
             />
             <div className="space-y-3 p-4 text-sm">
               <div className="flex items-start gap-3">
@@ -80,13 +80,12 @@ export function IncomingRequestsPage() {
               </div>
 
               <span
-                className={`inline-flex rounded-full border px-2 py-1 text-xs ${
-                  r.status === "approved"
+                className={`inline-flex rounded-full border px-2 py-1 text-xs ${r.status === "approved"
                     ? "border-green-500/40 bg-green-500/10 text-green-300"
                     : r.status === "rejected"
                       ? "border-red-500/40 bg-red-500/10 text-red-300"
                       : "border-orange-500/40 bg-orange-500/10 text-orange-300"
-                }`}
+                  }`}
               >
                 {r.status}
               </span>

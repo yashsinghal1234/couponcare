@@ -55,12 +55,12 @@ export function CouponDetailPage() {
   if (!coupon) return <div className="cc-muted">{status || "Loading..."}</div>;
 
   return (
-    <div className="max-w-3xl space-y-4">
+    <div className="cc-page max-w-3xl space-y-4">
       <div className="cc-card overflow-hidden">
         <img
           src="https://images.unsplash.com/photo-1607082350899-7e105aa886ae?auto=format&fit=crop&w=1400&q=80"
           alt={coupon.brand}
-          className="h-48 w-full object-cover"
+          className="cc-media h-48 w-full object-cover"
         />
         <div className="p-5">
           <h1 className="flex items-center gap-3 text-3xl font-semibold tracking-tight">
