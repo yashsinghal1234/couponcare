@@ -9,6 +9,10 @@ type CouponSummary = {
   category: string;
   expiryDate: string;
   showDonorName?: boolean;
+  revealMode?: string;
+  restrictions?: string;
+  city?: string;
+  code?: string;
   brandLogoUrl?: string | null;
   productImageUrl?: string | null;
 };
@@ -264,6 +268,10 @@ export function IncomingRequestsPage() {
             const donorName = r.donorName ?? r.donor?.displayName ?? "Anonymous donor";
             const category = r.coupon?.category;
             const expiryDate = r.coupon?.expiryDate;
+            const couponCode = r.coupon?.code;
+            const restrictions = r.coupon?.restrictions;
+            const city = r.coupon?.city;
+            const revealMode = r.coupon?.revealMode;
 
             return (
               <article key={r.id} className="cc-card overflow-hidden">
@@ -304,8 +312,21 @@ export function IncomingRequestsPage() {
                       {expiryDate ? (
                         <span className="cc-tag">Expires {formatDate(expiryDate)}</span>
                       ) : null}
+                      {city ? <span className="cc-tag">{city}</span> : null}
+                      {revealMode ? <span className="cc-tag">{revealMode}</span> : null}
                       <span className="cc-tag">Requested {formatDateTime(r.createdAt)}</span>
                     </div>
+
+                    {r.status === "approved" && couponCode ? (
+                      <div className="rounded-xl border border-white/10 bg-black/40 px-4 py-3 text-sm">
+                        <div className="text-xs uppercase tracking-[0.2em] text-white/50">Coupon code</div>
+                        <div className="mt-1 font-mono text-base text-white/90">{couponCode}</div>
+                      </div>
+                    ) : null}
+
+                    {restrictions ? (
+                      <div className="text-xs text-white/60">Restrictions: {restrictions}</div>
+                    ) : null}
                   </div>
                 </div>
               </article>

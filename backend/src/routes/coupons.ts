@@ -65,7 +65,13 @@ couponsRouter.post("/", requireAuth, async (req, res) => {
 couponsRouter.get("/", async (req, res) => {
   const { category, brand, city } = req.query;
 
-  const filter: Record<string, unknown> = { status: "available" };
+  const now = new Date();
+  await CouponModel.updateMany(
+    { status: "available", expiryDate: { $lte: now } },
+    { $set: { status: "expired" } }
+  );
+
+  const filter: Record<string, unknown> = { status: "available", expiryDate: { $gt: now } };
   if (typeof category === "string" && category.length) filter.category = category;
   if (typeof brand === "string" && brand.length) filter.brand = new RegExp(`^${escapeRegex(brand)}$`, "i");
   if (typeof city === "string" && city.length) filter.city = new RegExp(`^${escapeRegex(city)}$`, "i");
@@ -120,6 +126,13 @@ couponsRouter.get("/:id", async (req, res) => {
   const coupon = await CouponModel.findById(req.params.id).lean();
   if (!coupon) return res.status(404).json({ error: "Not found" });
 
+  const now = new Date();
+  let status = coupon.status;
+  if (coupon.expiryDate.getTime() <= now.getTime() && coupon.status !== "expired") {
+    await CouponModel.findByIdAndUpdate(coupon._id, { $set: { status: "expired" } });
+    status = "expired";
+  }
+
   let code: string | undefined;
   const header = req.header("authorization");
   const token = header?.startsWith("Bearer ") ? header.slice("Bearer ".length).trim() : undefined;
@@ -153,7 +166,7 @@ couponsRouter.get("/:id", async (req, res) => {
       revealMode: coupon.revealMode,
       showDonorName: coupon.showDonorName,
       donor: coupon.showDonorName && donor ? { displayName: donor.displayName } : undefined,
-      status: coupon.status,
+      status,
       code
     }
   });

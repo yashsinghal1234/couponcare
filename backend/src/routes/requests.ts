@@ -104,6 +104,10 @@ requestsRouter.get("/requests/outgoing", requireAuth, async (req, res) => {
             category: coupon.category,
             expiryDate: coupon.expiryDate,
             showDonorName: coupon.showDonorName,
+            revealMode: coupon.revealMode,
+            restrictions: coupon.restrictions,
+            city: coupon.city,
+            code: r.status === "approved" ? coupon.code : undefined,
             brandLogoUrl: coupon.brandLogoUrl ?? null,
             productImageUrl: coupon.productImageUrl ?? null
           }

@@ -127,42 +127,42 @@ export function BrowseCouponsPage() {
           const heroImage = c.productImageUrl ?? couponImages[idx % couponImages.length];
 
           return (
-          <article key={c.id} className="cc-card overflow-hidden">
-            <img
-              src={heroImage}
-              alt={c.brand}
-              className="cc-media h-36 w-full object-cover"
-            />
-            <div className="space-y-3 p-4">
-              <div className="min-w-0">
-                <div className="flex items-center gap-2 text-lg font-semibold tracking-tight">
-                  <BrandLogo sources={logoSources} brand={c.brand} size="sm" />
-                  <span>{c.brand}</span>
-                </div>
-                <div className="text-sm text-white/80">{c.valueDescription}</div>
-                <div className="mt-1 text-sm text-white/65">
-                  Expires: {new Date(c.expiryDate).toLocaleDateString()} • {c.category}
-                </div>
-                <div className="text-sm text-white/65">
-                  {c.city ? `${c.city} • ` : ""}
-                  {c.showDonorName && c.donor?.displayName ? `by ${c.donor.displayName}` : "Anonymous donor"}
-                </div>
-                {typeof c.donor?.trustScore === "number" ? (
-                  <div className="mt-2 inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/5 px-3 py-1 text-xs text-white/70">
-                    <span className="uppercase tracking-[0.2em] text-white/50">Trust</span>
-                    <span className="text-white">{Math.round(c.donor.trustScore)}%</span>
+            <article key={c.id} className="cc-card overflow-hidden">
+              <img
+                src={heroImage}
+                alt={c.brand}
+                className="cc-media h-36 w-full object-cover"
+              />
+              <div className="space-y-3 p-4">
+                <div className="min-w-0">
+                  <div className="flex items-center gap-2 text-lg font-semibold tracking-tight">
+                    <BrandLogo sources={logoSources} brand={c.brand} size="sm" />
+                    <span>{c.brand}</span>
                   </div>
-                ) : null}
+                  <div className="text-sm text-white/80">{c.valueDescription}</div>
+                  <div className="mt-1 text-sm text-white/65">
+                    Expires: {new Date(c.expiryDate).toLocaleDateString()} • {c.category}
+                  </div>
+                  <div className="text-sm text-white/65">
+                    {c.city ? `${c.city} • ` : ""}
+                    {c.showDonorName && c.donor?.displayName ? `by ${c.donor.displayName}` : "Anonymous donor"}
+                  </div>
+                  {typeof c.donor?.trustScore === "number" ? (
+                    <div className="mt-2 inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/5 px-3 py-1 text-xs text-white/70">
+                      <span className="uppercase tracking-[0.2em] text-white/50">Trust</span>
+                      <span className="text-white">{Math.round(c.donor.trustScore)}%</span>
+                    </div>
+                  ) : null}
+                </div>
+                <div className="flex items-center justify-between">
+                  <span className="rounded-full border border-orange-400/50 bg-orange-500/10 px-2 py-1 text-xs text-orange-300">{c.revealMode}</span>
+                  <Link className="cc-btn" to={`/coupons/${c.id}`}>
+                    View details
+                  </Link>
+                </div>
               </div>
-              <div className="flex items-center justify-between">
-                <span className="rounded-full border border-orange-400/50 bg-orange-500/10 px-2 py-1 text-xs text-orange-300">{c.revealMode}</span>
-                <Link className="cc-btn" to={`/coupons/${c.id}`}>
-                  View details
-                </Link>
-              </div>
-            </div>
-          </article>
-        );
+            </article>
+          );
         })}
       </div>
 
