@@ -8,6 +8,7 @@ type CouponSummary = {
   valueDescription: string;
   category: string;
   expiryDate: string;
+  showDonorName?: boolean;
   brandLogoUrl?: string | null;
   productImageUrl?: string | null;
 };
@@ -17,27 +18,51 @@ type RecipientSummary = {
   displayName: string;
 };
 
-type IncomingRequest = {
+type RequestItem = {
   id: string;
   couponId: string;
   recipientId: string;
+  donorId: string;
   status: "pending" | "approved" | "rejected";
   createdAt: string;
   recipientName?: string | null;
+  donorName?: string | null;
   coupon?: CouponSummary | null;
   recipient?: RecipientSummary | null;
+  donor?: { id: string; displayName: string } | null;
 };
 
 export function IncomingRequestsPage() {
-  const [items, setItems] = useState<IncomingRequest[]>([]);
+  const [incomingItems, setIncomingItems] = useState<RequestItem[]>([]);
+  const [outgoingItems, setOutgoingItems] = useState<RequestItem[]>([]);
+  const [incomingError, setIncomingError] = useState("");
+  const [outgoingError, setOutgoingError] = useState("");
   const [status, setStatus] = useState("");
 
   async function load() {
     setStatus("Loading...");
-    const r = await apiGet<{ requests: IncomingRequest[] }>("/api/requests/incoming");
-    if (!r.ok) return setStatus(r.error);
-    setItems(r.data.requests);
-    setStatus(`Loaded ${r.data.requests.length}`);
+    setIncomingError("");
+    setOutgoingError("");
+    const [incomingRes, outgoingRes] = await Promise.all([
+      apiGet<{ requests: RequestItem[] }>("/api/requests/incoming"),
+      apiGet<{ requests: RequestItem[] }>("/api/requests/outgoing")
+    ]);
+
+    if (!incomingRes.ok) {
+      setIncomingError(incomingRes.error);
+      setIncomingItems([]);
+    } else {
+      setIncomingItems(incomingRes.data.requests);
+    }
+
+    if (!outgoingRes.ok) {
+      setOutgoingError(outgoingRes.error);
+      setOutgoingItems([]);
+    } else {
+      setOutgoingItems(outgoingRes.data.requests);
+    }
+
+    setStatus("Updated");
   }
 
   useEffect(() => {
@@ -58,10 +83,10 @@ export function IncomingRequestsPage() {
     await load();
   }
 
-  const pending = items.filter((r) => r.status === "pending");
-  const approved = items.filter((r) => r.status === "approved");
+  const pending = incomingItems.filter((r) => r.status === "pending");
+  const approved = incomingItems.filter((r) => r.status === "approved");
 
-  const statusStyles: Record<IncomingRequest["status"], string> = {
+  const statusStyles: Record<RequestItem["status"], string> = {
     pending: "border-orange-500/40 bg-orange-500/10 text-orange-300",
     approved: "border-green-500/40 bg-green-500/10 text-green-300",
     rejected: "border-red-500/40 bg-red-500/10 text-red-300"
@@ -80,11 +105,12 @@ export function IncomingRequestsPage() {
 
       <section className="space-y-4">
         <div className="flex flex-wrap items-center justify-between gap-2">
-          <h2 className="text-lg font-semibold text-white">Pending</h2>
+          <h2 className="text-lg font-semibold text-white">Incoming approvals</h2>
           <span className="text-xs uppercase tracking-[0.2em] text-white/50">
             {pending.length} waiting
           </span>
         </div>
+        {incomingError ? <div className="cc-alert cc-alert-error">{incomingError}</div> : null}
         <div className="grid gap-4">
           {pending.map((r) => {
             const couponImage = r.coupon?.productImageUrl ?? r.coupon?.brandLogoUrl ?? "";
@@ -158,7 +184,7 @@ export function IncomingRequestsPage() {
       {approved.length ? (
         <section className="space-y-4">
           <div className="flex flex-wrap items-center justify-between gap-2">
-            <h2 className="text-lg font-semibold text-white">Approved</h2>
+            <h2 className="text-lg font-semibold text-white">Approved incoming</h2>
             <span className="text-xs uppercase tracking-[0.2em] text-white/50">
               {approved.length} approved
             </span>
@@ -221,6 +247,75 @@ export function IncomingRequestsPage() {
           </div>
         </section>
       ) : null}
+
+      <section className="space-y-4">
+        <div className="flex flex-wrap items-center justify-between gap-2">
+          <h2 className="text-lg font-semibold text-white">Your requests</h2>
+          <span className="text-xs uppercase tracking-[0.2em] text-white/50">
+            {outgoingItems.length} total
+          </span>
+        </div>
+        {outgoingError ? <div className="cc-alert cc-alert-error">{outgoingError}</div> : null}
+        <div className="grid gap-4 md:grid-cols-2">
+          {outgoingItems.map((r) => {
+            const couponImage = r.coupon?.productImageUrl ?? r.coupon?.brandLogoUrl ?? "";
+            const couponBrand = r.coupon?.brand ?? "Coupon";
+            const couponValue = r.coupon?.valueDescription ?? "Details unavailable";
+            const donorName = r.donorName ?? r.donor?.displayName ?? "Anonymous donor";
+            const category = r.coupon?.category;
+            const expiryDate = r.coupon?.expiryDate;
+
+            return (
+              <article key={r.id} className="cc-card overflow-hidden">
+                <div className="flex flex-col md:flex-row">
+                  <div className="relative h-32 w-full md:h-auto md:w-36">
+                    {couponImage ? (
+                      <img
+                        src={couponImage}
+                        alt={`${couponBrand} coupon`}
+                        className="cc-media h-full w-full object-cover"
+                      />
+                    ) : (
+                      <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-white/15 via-white/5 to-black text-xs font-semibold uppercase tracking-[0.2em] text-white/70">
+                        {couponBrand}
+                      </div>
+                    )}
+                  </div>
+                  <div className="flex-1 space-y-3 p-4">
+                    <div className="flex flex-wrap items-start justify-between gap-3">
+                      <div>
+                        <div className="text-xs uppercase tracking-[0.2em] text-white/45">Requested from</div>
+                        <div className="text-base font-semibold text-white">{donorName}</div>
+                      </div>
+                      <span
+                        className={`inline-flex rounded-full border px-2 py-1 text-xs ${statusStyles[r.status]}`}
+                      >
+                        {r.status}
+                      </span>
+                    </div>
+
+                    <div className="grid gap-1 text-sm">
+                      <div className="font-medium text-white">{couponBrand}</div>
+                      <div className="text-white/65">{couponValue}</div>
+                    </div>
+
+                    <div className="flex flex-wrap gap-2 text-xs">
+                      {category ? <span className="cc-tag">{category}</span> : null}
+                      {expiryDate ? (
+                        <span className="cc-tag">Expires {formatDate(expiryDate)}</span>
+                      ) : null}
+                      <span className="cc-tag">Requested {formatDateTime(r.createdAt)}</span>
+                    </div>
+                  </div>
+                </div>
+              </article>
+            );
+          })}
+        </div>
+        {!outgoingItems.length ? (
+          <div className="cc-card p-3 text-sm text-white/65">No requests yet.</div>
+        ) : null}
+      </section>
     </div>
   );
 }

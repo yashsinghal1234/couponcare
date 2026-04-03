@@ -64,6 +64,58 @@ requestsRouter.get("/requests/incoming", requireAuth, async (req, res) => {
   });
 });
 
+requestsRouter.get("/requests/outgoing", requireAuth, async (req, res) => {
+  const recipientId = req.auth!.userId;
+  const requests = await CouponRequestModel.find({ recipientId })
+    .sort({ createdAt: -1 })
+    .limit(200)
+    .lean();
+
+  const couponIds = [...new Set(requests.map((r) => r.couponId.toString()))];
+  const donorIds = [...new Set(requests.map((r) => r.donorId.toString()))];
+
+  const [coupons, donors] = await Promise.all([
+    CouponModel.find({ _id: { $in: couponIds } }).lean(),
+    UserModel.find({ _id: { $in: donorIds } }, { displayName: 1 }).lean()
+  ]);
+
+  const couponsById = new Map(coupons.map((coupon) => [coupon._id.toString(), coupon]));
+  const donorsById = new Map(donors.map((donor) => [donor._id.toString(), donor]));
+
+  res.json({
+    requests: requests.map((r) => {
+      const coupon = couponsById.get(r.couponId.toString());
+      const donor = donorsById.get(r.donorId.toString());
+      const donorName = coupon?.showDonorName ? donor?.displayName ?? "Donor" : null;
+
+      return {
+        id: r._id.toString(),
+        couponId: r.couponId.toString(),
+        recipientId: r.recipientId.toString(),
+        donorId: r.donorId.toString(),
+        status: r.status,
+        createdAt: r.createdAt,
+        donorName,
+        coupon: coupon
+          ? {
+            id: coupon._id.toString(),
+            brand: coupon.brand,
+            valueDescription: coupon.valueDescription,
+            category: coupon.category,
+            expiryDate: coupon.expiryDate,
+            showDonorName: coupon.showDonorName,
+            brandLogoUrl: coupon.brandLogoUrl ?? null,
+            productImageUrl: coupon.productImageUrl ?? null
+          }
+          : null,
+        donor: donor && coupon?.showDonorName
+          ? { id: donor._id.toString(), displayName: donor.displayName }
+          : null
+      };
+    })
+  });
+});
+
 requestsRouter.post("/coupons/:couponId/requests", requireAuth, async (req, res) => {
   const recipientId = req.auth!.userId;
   const coupon = await CouponModel.findById(req.params.couponId);

@@ -47,8 +47,15 @@ const LoginSchema = z.object({
   password: z.string().min(1).max(200)
 });
 
-const ForgotPasswordSchema = z.object({
-  email: z.string().email()
+const ResetDirectSchema = z.object({
+  email: z.string().email(),
+  displayName: z.string().min(1).max(80).trim(),
+  password: z.string().min(8).max(200)
+});
+
+const VerifyResetSchema = z.object({
+  email: z.string().email(),
+  displayName: z.string().min(1).max(80).trim()
 });
 
 authRouter.post("/login", async (req, res) => {
@@ -69,13 +76,41 @@ authRouter.post("/login", async (req, res) => {
   });
 });
 
-authRouter.post("/forgot-password", async (req, res) => {
-  const parsed = ForgotPasswordSchema.safeParse(req.body);
+authRouter.post("/reset-password-direct", async (req, res) => {
+  const parsed = ResetDirectSchema.safeParse(req.body);
   if (!parsed.success) return res.status(400).json({ error: "Invalid input", details: parsed.error.flatten() });
 
-  res.json({
-    message: "If an account exists, a reset link will be sent to the provided email."
-  });
+  const { email, displayName, password } = parsed.data;
+  const user = await UserModel.findOne({
+    email,
+    displayName: new RegExp(`^${escapeRegex(displayName)}$`, "i")
+  }).lean();
+
+  if (!user) {
+    return res.status(400).json({ error: "Email and display name do not match." });
+  }
+
+  const passwordHash = await bcrypt.hash(password, 12);
+  await UserModel.findByIdAndUpdate(user._id, { $set: { passwordHash } });
+
+  res.json({ message: "Password updated successfully." });
+});
+
+authRouter.post("/verify-reset", async (req, res) => {
+  const parsed = VerifyResetSchema.safeParse(req.body);
+  if (!parsed.success) return res.status(400).json({ error: "Invalid input", details: parsed.error.flatten() });
+
+  const { email, displayName } = parsed.data;
+  const user = await UserModel.findOne({
+    email,
+    displayName: new RegExp(`^${escapeRegex(displayName)}$`, "i")
+  }).lean();
+
+  if (!user) {
+    return res.status(400).json({ error: "Email and display name do not match." });
+  }
+
+  res.json({ ok: true });
 });
 
 authRouter.get("/me", requireAuth, async (req, res) => {
@@ -91,4 +126,8 @@ authRouter.get("/me", requireAuth, async (req, res) => {
     }
   });
 });
+
+function escapeRegex(value: string) {
+  return value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+}
 
