@@ -98,7 +98,7 @@ couponsRouter.get("/", async (req, res) => {
         if (!donor) return { trustScore: null };
         return {
           displayName: c.showDonorName ? donor.displayName ?? "Donor" : undefined,
-          trustScore: computeTrustScore(donor.stats)
+          trustScore: computeTrustScore(donor.stats ?? undefined)
         };
       })(),
       status: c.status
