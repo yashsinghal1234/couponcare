@@ -6,6 +6,7 @@ export const CouponCategories = [
   "Entertainment",
   "Shopping",
   "Travel",
+  "Payment",
   "Other"
 ] as const;
 

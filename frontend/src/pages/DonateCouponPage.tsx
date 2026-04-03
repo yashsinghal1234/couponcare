@@ -1,7 +1,7 @@
 import { useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { apiPost } from "../lib/api";
-import { getBrandLogo, improveOfferText } from "../lib/offerHelpers";
+import { getBrandLogo, improveOfferText, getOfferImage } from "../lib/offerHelpers";
 import { detectCoupon, type CouponCategory, type CouponType, type CouponSource } from "../lib/detectCoupon";
 
 const categories: CouponCategory[] = ["Food", "Grocery", "Entertainment", "Shopping", "Travel", "Payment", "Other"];
@@ -58,6 +58,18 @@ export function DonateCouponPage() {
   const confidencePercent = Math.round(Math.min(100, Math.max(0, detection.confidence)));
 
   // ─── Handlers ──────────────────────────────
+  function guessCouponCode(text: string) {
+    const tokens = text
+      .split(/[\s,;:|]+/)
+      .map((token) => token.replace(/[^a-zA-Z0-9-]/g, "").trim())
+      .filter((token) => token.length >= 4 && token.length <= 20);
+
+    const alphaNum = tokens.filter((token) => /[a-zA-Z]/.test(token) && /\d/.test(token));
+    if (alphaNum.length) return alphaNum.sort((a, b) => b.length - a.length)[0];
+
+    return "";
+  }
+
   function handlePasteInput(text: string) {
     setPasteInput(text);
     const result = detectCoupon(text);
@@ -69,6 +81,10 @@ export function DonateCouponPage() {
     if (!detection.brand) {
       setStatus("💭 Hmm, I couldn't detect a brand. Try typing something like 'Swiggy 50%' or 'Amazon ₹200'.");
       return;
+    }
+    if (!code.trim()) {
+      const guessed = guessCouponCode(pasteInput);
+      if (guessed) setCode(guessed);
     }
     setCategory(detection.category);
     setCouponType(detection.type);
@@ -91,6 +107,10 @@ export function DonateCouponPage() {
       setStatus("⚠️ Please enter the coupon code.");
       return;
     }
+    if (!valueDescription.trim()) {
+      setStatus("⚠️ Please describe the offer.");
+      return;
+    }
     if (!expiryDate) {
       setStatus("⚠️ Please set an expiry date.");
       return;
@@ -101,28 +121,33 @@ export function DonateCouponPage() {
     }
 
     setLoading(true);
-    try {
-      await apiPost("/api/coupons", {
-        code,
-        brand: detection.brand,
-        description: valueDescription,
-        category,
-        type: couponType,
-        expiry: expiryDate,
-        restrictions: restrictions || undefined,
-        city: city || undefined,
-        isReward,
-        rewardSource: isReward ? rewardSource : undefined,
-        rewardTransferable: isReward ? rewardTransferable : undefined,
-        revealMode,
-        showDonorName,
-      });
-      navigate("/browse?donated=true");
-    } catch (err) {
-      setStatus(`❌ Error: ${err instanceof Error ? err.message : "Unknown error"}`);
-    } finally {
+    const cleanedDescription = improveOfferText(valueDescription);
+    const brandLogoUrl = getBrandLogo(detection.brand) ?? undefined;
+    const productImageUrl = getOfferImage(detection.brand, valueDescription);
+
+    const r = await apiPost<{ coupon: { id: string } }>("/api/coupons", {
+      code,
+      brand: detection.brand,
+      valueDescription: cleanedDescription || valueDescription,
+      enhancedDescription: cleanedDescription && cleanedDescription !== valueDescription ? cleanedDescription : undefined,
+      category,
+      expiryDate,
+      restrictions: restrictions || undefined,
+      city: city || undefined,
+      brandLogoUrl,
+      productImageUrl,
+      revealMode,
+      showDonorName
+    });
+
+    if (!r.ok) {
+      setStatus(r.error);
       setLoading(false);
+      return;
     }
+
+    setLoading(false);
+    navigate("/browse?donated=true");
   }
 
   const typeMeta = COUPON_TYPE_COLORS[couponType];

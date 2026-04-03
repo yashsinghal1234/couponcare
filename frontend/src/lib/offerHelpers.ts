@@ -23,10 +23,23 @@ const productImages: Record<string, string> = {
   default: "https://images.unsplash.com/photo-1556740758-90de374c12ad?auto=format&fit=crop&w=1200&q=80"
 };
 
-export function getBrandLogo(brand: string): string | null {
+const BRAND_FETCH_CLIENT_ID = "1idHivajnbDnKOaThUe";
+
+export function getBrandLogoSources(brand: string): string[] {
   const key = normalize(brand);
   const domain = brandDomains[key];
-  return domain ? `https://logo.clearbit.com/${domain}` : null;
+  if (!domain) return [];
+  return [
+    `https://cdn.brandfetch.io/${domain}?c=${BRAND_FETCH_CLIENT_ID}`,
+    `https://logo.clearbit.com/${domain}`,
+    `https://icons.duckduckgo.com/ip3/${domain}.ico`,
+    `https://www.google.com/s2/favicons?sz=128&domain=${domain}`
+  ];
+}
+
+export function getBrandLogo(brand: string): string | null {
+  const sources = getBrandLogoSources(brand);
+  return sources[0] ?? null;
 }
 
 export function getOfferImage(brand: string, text: string): string {

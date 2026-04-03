@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 
 import { apiGet, apiPost, getToken } from "../lib/api";
-import { getBrandLogo } from "../lib/offerHelpers";
+import { getBrandLogoSources } from "../lib/offerHelpers";
 
 type Coupon = {
   id: string;
@@ -20,6 +20,44 @@ type Coupon = {
   status: "available" | "claimed" | "expired";
   code?: string;
 };
+
+type BrandLogoProps = {
+  sources: string[];
+  brand: string;
+  size?: "sm" | "lg";
+};
+
+function BrandLogo({ sources, brand, size = "lg" }: BrandLogoProps) {
+  const [index, setIndex] = useState(0);
+  const sourceKey = sources.join("|");
+  useEffect(() => setIndex(0), [sourceKey]);
+  const src = sources[index];
+  const letter = brand.trim().slice(0, 1).toUpperCase() || "?";
+  const isSmall = size === "sm";
+  const imgClass = isSmall
+    ? "h-5 w-5 rounded-sm bg-white object-contain"
+    : "h-10 w-10 rounded-lg bg-white p-1.5 object-contain";
+  const fallbackClass = isSmall
+    ? "cc-brand-fallback cc-brand-fallback--sm"
+    : "cc-brand-fallback cc-brand-fallback--lg";
+
+  if (!src) {
+    return (
+      <span className={fallbackClass} title={brand}>
+        {letter}
+      </span>
+    );
+  }
+
+  return (
+    <img
+      src={src}
+      alt={`${brand} logo`}
+      className={imgClass}
+      onError={() => setIndex((current) => current + 1)}
+    />
+  );
+}
 
 export function CouponDetailPage() {
   const { id } = useParams();
@@ -74,6 +112,9 @@ export function CouponDetailPage() {
     coupon.productImageUrl ??
     coupon.brandLogoUrl ??
     "https://images.unsplash.com/photo-1607082350899-7e105aa886ae?auto=format&fit=crop&w=1800&q=80";
+  const logoSources = [coupon.brandLogoUrl, ...getBrandLogoSources(coupon.brand)].filter(
+    (source): source is string => Boolean(source)
+  );
 
   return (
     <div className="cc-page mx-auto w-full max-w-4xl space-y-6">
@@ -89,13 +130,7 @@ export function CouponDetailPage() {
         </div>
         <div className="space-y-4 p-6 md:p-7">
           <div className="flex flex-wrap items-center gap-3">
-            {getBrandLogo(coupon.brand) ? (
-              <img
-                src={getBrandLogo(coupon.brand)!}
-                alt={`${coupon.brand} logo`}
-                className="h-10 w-10 rounded-lg bg-white p-1.5"
-              />
-            ) : null}
+            <BrandLogo sources={logoSources} brand={coupon.brand} size="lg" />
             <h1 className="text-3xl font-semibold tracking-tight md:text-4xl">{coupon.brand}</h1>
           </div>
           <div className="text-base text-white/85 md:text-lg">{coupon.valueDescription}</div>
