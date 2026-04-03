@@ -29,26 +29,6 @@ const AVATAR_PRESETS = [
     label: "Focus",
     url: "https://i.pinimg.com/736x/96/7d/e9/967de98b98584d52f26f88c78cdb6369.jpg",
   },
-  {
-    label: "Noir",
-    url:
-      "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 120 120'><rect width='120' height='120' fill='%230b0b0d'/><circle cx='60' cy='60' r='28' fill='%23f8fafc'/></svg>",
-  },
-  {
-    label: "Split",
-    url:
-      "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 120 120'><defs><linearGradient id='g' x1='0' y1='0' x2='1' y2='1'><stop offset='0%' stop-color='%230b0b0d'/><stop offset='100%' stop-color='%23f8fafc'/></linearGradient></defs><rect width='120' height='120' fill='url(%23g)'/></svg>",
-  },
-  {
-    label: "Halo",
-    url:
-      "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 120 120'><rect width='120' height='120' fill='%230b0b0d'/><circle cx='60' cy='60' r='30' fill='none' stroke='%23f8fafc' stroke-width='6'/></svg>",
-  },
-  {
-    label: "Stripe",
-    url:
-      "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 120 120'><rect width='120' height='120' fill='%230b0b0d'/><rect x='0' y='52' width='120' height='16' fill='%23f8fafc' opacity='0.9'/></svg>",
-  },
 ];
 
 export function ProfilePage() {

@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 
-import { apiGet, apiPost, getToken, setToken } from "../lib/api";
+import { apiPost, getToken, setToken } from "../lib/api";
 
 export function SignInPage() {
   const navigate = useNavigate();
@@ -32,41 +32,54 @@ export function SignInPage() {
     }
   }
 
-  async function loadMe() {
-    setStatus("Loading /me...");
-    const r = await apiGet<{ user: { email: string; displayName: string } }>("/api/auth/me");
-    if (!r.ok) return setStatus(r.error);
-    setStatus(`Me: ${r.data.user.displayName} (${r.data.user.email})`);
-  }
+  const isError = status.toLowerCase().includes("error") || status.toLowerCase().includes("invalid");
 
   return (
-    <div className="cc-page grid gap-5 md:grid-cols-2">
-      <section className="cc-card overflow-hidden">
-        <img
-          src="https://images.unsplash.com/photo-1556740738-b6a63e27c4df?auto=format&fit=crop&w=1200&q=80"
-          alt="People sharing support"
-          className="cc-media h-52 w-full object-cover md:h-full"
-        />
-      </section>
+    <div className="cc-page cc-auth-page">
+      <div className="cc-auth-grid">
+        <section className={`cc-card cc-auth-hero ${mode === "signup" ? "cc-auth-hero--signup" : ""}`}>
+          <div className="cc-auth-hero-content">
+            <p className="cc-auth-kicker">CouponCare</p>
+            <h2 className="cc-auth-title">Give coupons a second life.</h2>
+            <p className="cc-auth-subtitle">
+              Donate unused coupons, request what you need, and build trust through verified approvals.
+            </p>
+            <div className="flex flex-wrap gap-2">
+              <span className="cc-tag">Donor approvals</span>
+              <span className="cc-tag">Community trust</span>
+              <span className="cc-tag">Fast requests</span>
+            </div>
+          </div>
+        </section>
 
-      <section className="space-y-4">
-        <div>
-          <h1 className="cc-title">Sign in to CouponCare</h1>
-          <p className="cc-muted mt-1">Sign in is required to donate coupons, send requests, and manage approvals.</p>
-        </div>
+        <section className="cc-card cc-auth-panel">
+          <div className="space-y-2">
+            <p className="cc-auth-kicker">{mode === "login" ? "Welcome back" : "Create your account"}</p>
+            <h1 className="cc-title">{mode === "login" ? "Sign in" : "Sign up"}</h1>
+            <p className="cc-muted">
+              {mode === "login"
+                ? "Sign in to donate, request, and manage approvals."
+                : "Create an account to donate coupons and request support."}
+            </p>
+          </div>
 
-        <div className="cc-card space-y-4 p-5">
-          <div className="flex gap-2 text-sm">
+          <div className="cc-auth-toggle">
             <button
               className={mode === "login" ? "cc-btn-primary" : "cc-btn"}
-              onClick={() => setMode("login")}
+              onClick={() => {
+                setMode("login");
+                setStatus("");
+              }}
               type="button"
             >
               Sign in
             </button>
             <button
               className={mode === "signup" ? "cc-btn-primary" : "cc-btn"}
-              onClick={() => setMode("signup")}
+              onClick={() => {
+                setMode("signup");
+                setStatus("");
+              }}
               type="button"
             >
               Create account
@@ -76,28 +89,51 @@ export function SignInPage() {
           {mode === "signup" ? (
             <label className="block text-sm">
               <div className="mb-1 text-white/70">Display name</div>
-              <input className="cc-input" value={displayName} onChange={(e) => setDisplayName(e.target.value)} />
+              <input
+                className="cc-input"
+                value={displayName}
+                onChange={(e) => setDisplayName(e.target.value)}
+                autoComplete="name"
+                placeholder="Your name"
+              />
             </label>
           ) : null}
 
           <label className="block text-sm">
             <div className="mb-1 text-white/70">Email</div>
-            <input className="cc-input" value={email} onChange={(e) => setEmail(e.target.value)} />
+            <input
+              className="cc-input"
+              type="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              autoComplete="email"
+              placeholder="you@example.com"
+            />
           </label>
 
           <label className="block text-sm">
             <div className="mb-1 text-white/70">Password</div>
-            <input className="cc-input" type="password" value={password} onChange={(e) => setPassword(e.target.value)} />
+            <input
+              className="cc-input"
+              type="password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              autoComplete={mode === "login" ? "current-password" : "new-password"}
+              placeholder={mode === "login" ? "Enter your password" : "Create a strong password"}
+            />
           </label>
 
-          <div className="flex flex-wrap gap-2">
-            <button className="cc-btn-primary" onClick={submit} type="button">
-              {mode === "login" ? "Sign in" : "Create account"}
-            </button>
-            <button className="cc-btn" onClick={loadMe} type="button">
-              Check profile
-            </button>
-          </div>
+          {mode === "login" ? (
+            <div className="text-right text-xs">
+              <Link className="text-white/60 hover:text-white" to="/forgot-password">
+                Forgot password?
+              </Link>
+            </div>
+          ) : null}
+
+          <button className="cc-btn-primary" onClick={submit} type="button">
+            {mode === "login" ? "Sign in" : "Create account"}
+          </button>
 
           <p className="cc-muted">
             Browse is public. Donation and requests require sign in.{" "}
@@ -106,9 +142,84 @@ export function SignInPage() {
             </Link>
           </p>
 
-          {status ? <div className="rounded-xl bg-black/30 p-3 text-sm text-white/80">{status}</div> : null}
-        </div>
-      </section>
+          {status ? (
+            <div className={`cc-alert ${isError ? "cc-alert-error" : ""}`}>{status}</div>
+          ) : null}
+        </section>
+      </div>
+    </div>
+  );
+}
+
+export function ForgotPasswordPage() {
+  const navigate = useNavigate();
+  const [email, setEmail] = useState("");
+  const [status, setStatus] = useState("");
+  const [sent, setSent] = useState(false);
+
+  async function submit() {
+    if (!email.trim()) {
+      setStatus("Please enter your email.");
+      return;
+    }
+    setStatus("Sending reset link...");
+    const r = await apiPost<{ message?: string }>("/api/auth/forgot-password", { email });
+    if (!r.ok) return setStatus(r.error);
+    setSent(true);
+    setStatus(r.data.message ?? "If an account exists, a reset link will be sent.");
+  }
+
+  const isError = status.toLowerCase().includes("error") || status.toLowerCase().includes("invalid");
+
+  return (
+    <div className="cc-page cc-auth-page">
+      <div className="cc-auth-grid">
+        <section className="cc-card cc-auth-hero">
+          <div className="cc-auth-hero-content">
+            <p className="cc-auth-kicker">CouponCare</p>
+            <h2 className="cc-auth-title">Reset your access.</h2>
+            <p className="cc-auth-subtitle">
+              Enter the email tied to your account. We will send a reset link if it exists.
+            </p>
+            <div className="flex flex-wrap gap-2">
+              <span className="cc-tag">Account security</span>
+              <span className="cc-tag">Private reset</span>
+            </div>
+          </div>
+        </section>
+
+        <section className="cc-card cc-auth-panel">
+          <div className="space-y-2">
+            <p className="cc-auth-kicker">Forgot password</p>
+            <h1 className="cc-title">Reset link</h1>
+            <p className="cc-muted">We will email you a reset link if the account exists.</p>
+          </div>
+
+          <label className="block text-sm">
+            <div className="mb-1 text-white/70">Email</div>
+            <input
+              className="cc-input"
+              type="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              autoComplete="email"
+              placeholder="you@example.com"
+            />
+          </label>
+
+          <button className="cc-btn-primary" onClick={submit} type="button" disabled={sent}>
+            {sent ? "Reset link sent" : "Send reset link"}
+          </button>
+
+          <button className="cc-btn" onClick={() => navigate("/signin")} type="button">
+            Back to sign in
+          </button>
+
+          {status ? (
+            <div className={`cc-alert ${isError ? "cc-alert-error" : ""}`}>{status}</div>
+          ) : null}
+        </section>
+      </div>
     </div>
   );
 }

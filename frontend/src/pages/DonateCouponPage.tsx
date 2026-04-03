@@ -230,8 +230,8 @@ or just: zomato 50% off"
                 onClick={moveToConfirm}
                 disabled={!detection.brand}
                 className={`mt-8 w-full py-3.5 px-6 rounded-full text-lg font-semibold transition-all ${detection.brand
-                    ? "cc-btn-primary hover:scale-[1.01]"
-                    : "cc-btn opacity-40 cursor-not-allowed"
+                  ? "cc-btn-primary hover:scale-[1.01]"
+                  : "cc-btn opacity-40 cursor-not-allowed"
                   }`}
               >
                 Next: Confirm Details →

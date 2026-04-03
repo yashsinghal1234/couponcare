@@ -60,6 +60,105 @@ body {
   .cc-card {
     @apply rounded-3xl border border-white/10 bg-white/[0.03] backdrop-blur-sm;
   }
+  .cc-toast {
+    position: fixed;
+    right: 28px;
+    top: 96px;
+    z-index: 40;
+    max-width: min(360px, calc(100vw - 56px));
+    border-radius: 16px;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    background: rgba(12, 12, 14, 0.92);
+    padding: 12px 16px;
+    font-size: 0.85rem;
+    color: #f8fafc;
+    box-shadow: 0 24px 60px rgba(0, 0, 0, 0.45);
+    animation: cc-toast-in 0.22s ease-out;
+  }
+  .cc-toast--error {
+    border-color: rgba(248, 113, 113, 0.5);
+    color: #fecaca;
+  }
+  .cc-toast--success {
+    border-color: rgba(74, 222, 128, 0.5);
+    color: #bbf7d0;
+  }
+  .cc-auth-page {
+    min-height: calc(100vh - 160px);
+    display: grid;
+    align-items: center;
+  }
+  .cc-auth-grid {
+    display: grid;
+    gap: 24px;
+    align-items: stretch;
+  }
+  .cc-auth-hero {
+    position: relative;
+    overflow: hidden;
+    min-height: 520px;
+  }
+  .cc-auth-hero::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background-image: url("https://i.pinimg.com/originals/73/9d/e5/739de5890200a4d1223d87e0bc107e9f.gif");
+    background-size: cover;
+    background-position: center;
+    filter: grayscale(100%) contrast(1.15) brightness(0.85);
+  }
+  .cc-auth-hero--signup::before {
+    background-image: url("https://i.pinimg.com/originals/07/ea/ce/07eacec447a64e37be385b723e644809.gif");
+  }
+  .cc-auth-hero::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: transparent;
+  }
+  .cc-auth-hero-content {
+    position: relative;
+    z-index: 1;
+    height: 100%;
+    padding: 32px;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+    gap: 12px;
+  }
+  .cc-auth-kicker {
+    @apply text-xs uppercase tracking-[0.35em];
+    color: rgba(238, 232, 222, 0.82);
+    text-shadow: 0 6px 18px rgba(0, 0, 0, 0.6);
+  }
+  .cc-auth-title {
+    font-family: "Playfair Display", "Manrope", serif;
+    font-size: clamp(1.8rem, 2.7vw, 2.6rem);
+    line-height: 1.1;
+    color: #f7f2e8;
+    text-shadow: 0 10px 30px rgba(0, 0, 0, 0.7);
+  }
+  .cc-auth-subtitle {
+    @apply text-sm md:text-base;
+    color: rgba(236, 230, 220, 0.86);
+    text-shadow: 0 8px 20px rgba(0, 0, 0, 0.7);
+  }
+  .cc-auth-hero .cc-tag {
+    background: rgba(0, 0, 0, 0.32);
+    border-color: rgba(255, 255, 255, 0.2);
+    color: rgba(251, 247, 240, 0.88);
+  }
+  .cc-auth-panel {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    padding: 28px;
+  }
+  .cc-auth-toggle {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
   .cc-page {
     color: #f5f5f5;
   }
@@ -103,6 +202,13 @@ body {
   }
   .cc-btn-primary {
     @apply rounded-full bg-white px-6 py-2.5 text-sm font-semibold text-black transition hover:bg-white/90;
+  }
+  .cc-btn-primary:hover {
+    background: #0b0b0d;
+    color: #fff;
+    border-color: rgba(255, 255, 255, 0.25);
+    text-shadow: 0 0 10px rgba(255, 255, 255, 0.95), 0 0 24px rgba(255, 255, 255, 0.9),
+      0 0 48px rgba(255, 255, 255, 0.75);
   }
   .cc-panel {
     @apply rounded-3xl border border-white/10 bg-white/[0.03] backdrop-blur-sm;
@@ -399,17 +505,17 @@ body {
     box-shadow: 0 0 22px rgba(255, 255, 255, 0.35);
   }
   .cc-cursor--invert {
-    border-color: rgba(10, 10, 12, 0.9);
-    background-color: rgba(10, 10, 12, 0.65);
-    box-shadow: 0 0 22px rgba(10, 10, 12, 0.5);
+    border-color: rgba(6, 6, 8, 0.95);
+    background-color: rgba(6, 6, 8, 0.25);
+    box-shadow: 0 0 22px rgba(0, 0, 0, 0.45);
   }
 }
 
 @media (pointer: fine) {
-  body,
-  a,
-  button {
-    cursor: none;
+  *,
+  *::before,
+  *::after {
+    cursor: none !important;
   }
 }
 
@@ -434,6 +540,24 @@ body {
     top: 22%;
     transform: translate(-50%, -12%);
   }
+  .cc-auth-hero {
+    min-height: 360px;
+  }
+}
+
+@media (min-width: 1024px) {
+  .cc-auth-grid {
+    grid-template-columns: 1.1fr 0.9fr;
+  }
+}
+
+@media (max-width: 640px) {
+  .cc-toast {
+    left: 16px;
+    right: 16px;
+    top: 84px;
+    max-width: none;
+  }
 }
 
 @keyframes cc-strip {
@@ -442,6 +566,17 @@ body {
   }
   to {
     transform: translateX(-50%);
+  }
+}
+
+@keyframes cc-toast-in {
+  from {
+    opacity: 0;
+    transform: translateY(-6px) translateX(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) translateX(0);
   }
 }
 

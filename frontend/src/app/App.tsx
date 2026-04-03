@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 import { BrowserRouter, Navigate, NavLink, Route, Routes, useLocation } from "react-router-dom";
 
 import { clearToken, getToken, onAuthChanged } from "../lib/api";
-import { SignInPage } from "../pages/AuthPage";
+import { ForgotPasswordPage, SignInPage } from "../pages/AuthPage";
 import { BrowseCouponsPage } from "../pages/BrowseCouponsPage";
 import { CouponDetailPage } from "../pages/CouponDetailPage";
 import { DonateCouponPage } from "../pages/DonateCouponPage";
@@ -125,6 +125,7 @@ function AppShell() {
         <Routes>
           <Route path="/" element={<HomePage />} />
           <Route path="/signin" element={<SignInPage />} />
+          <Route path="/forgot-password" element={<ForgotPasswordPage />} />
           <Route path="/auth" element={<Navigate to="/signin" replace />} />
           <Route path="/donate" element={<ProtectedRoute><DonateCouponPage /></ProtectedRoute>} />
           <Route path="/browse" element={<BrowseCouponsPage />} />

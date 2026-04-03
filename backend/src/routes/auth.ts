@@ -47,6 +47,10 @@ const LoginSchema = z.object({
   password: z.string().min(1).max(200)
 });
 
+const ForgotPasswordSchema = z.object({
+  email: z.string().email()
+});
+
 authRouter.post("/login", async (req, res) => {
   const parsed = LoginSchema.safeParse(req.body);
   if (!parsed.success) return res.status(400).json({ error: "Invalid input", details: parsed.error.flatten() });
@@ -62,6 +66,15 @@ authRouter.post("/login", async (req, res) => {
   res.json({
     token,
     user: { id: user._id.toString(), email: user.email, displayName: user.displayName, roles: user.roles, stats: user.stats }
+  });
+});
+
+authRouter.post("/forgot-password", async (req, res) => {
+  const parsed = ForgotPasswordSchema.safeParse(req.body);
+  if (!parsed.success) return res.status(400).json({ error: "Invalid input", details: parsed.error.flatten() });
+
+  res.json({
+    message: "If an account exists, a reset link will be sent to the provided email."
   });
 });
 
