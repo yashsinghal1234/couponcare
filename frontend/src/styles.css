@@ -322,6 +322,29 @@ body {
   .cc-nav-link-cta:hover {
     transform: translateY(-3px);
   }
+  .cc-mobile-menu {
+    position: absolute;
+    right: 24px;
+    top: 86px;
+    width: min(280px, calc(100vw - 48px));
+    padding: 12px;
+    display: grid;
+    gap: 8px;
+    z-index: 60;
+    background: rgba(8, 8, 10, 0.92);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    box-shadow: 0 24px 60px rgba(0, 0, 0, 0.55);
+    backdrop-filter: blur(16px);
+  }
+  .cc-mobile-link {
+    @apply flex items-center justify-between rounded-xl border border-white/15 px-4 py-3 text-xs font-semibold uppercase tracking-[0.22em] text-white transition;
+    background: rgba(10, 10, 12, 0.85);
+  }
+  .cc-mobile-link:hover {
+    border-color: rgba(255, 255, 255, 0.4);
+    color: #fff;
+    transform: translateY(-2px);
+  }
   .cc-hero-page {
     @apply flex min-h-[calc(100vh-140px)] flex-col items-center justify-center gap-10 py-10;
     width: 100%;

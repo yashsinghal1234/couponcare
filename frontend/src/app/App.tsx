@@ -23,10 +23,12 @@ function AppShell() {
   const location = useLocation();
   const isHome = location.pathname === "/";
   const [isAuthed, setIsAuthed] = useState(Boolean(getToken()));
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [avatarUrl, setAvatarUrl] = useState<string>(
     "https://i.pinimg.com/736x/b0/bc/be/b0bcbe2b26065f336f6086b4bcd6bea9.jpg"
   );
   useEffect(() => onAuthChanged(() => setIsAuthed(Boolean(getToken()))), []);
+  useEffect(() => setIsMobileMenuOpen(false), [location.pathname]);
 
   useEffect(() => {
     const key = "cc_avatar_url";
@@ -101,24 +103,81 @@ function AppShell() {
               <>
                 <NavLink
                   to="/profile"
-                  className="cc-avatar-btn"
+                  className="cc-avatar-btn hidden md:inline-flex"
                   aria-label="Profile"
                   title="Profile"
                   style={{ backgroundImage: `url(${avatarUrl})` }}
                 >
                   <span className="cc-avatar-core" aria-hidden="true" />
                 </NavLink>
-                <button className="cc-btn" type="button" onClick={() => clearToken()}>
+                <button
+                  className="cc-avatar-btn md:hidden"
+                  type="button"
+                  aria-label="Open menu"
+                  aria-haspopup="menu"
+                  aria-expanded={isMobileMenuOpen}
+                  onClick={() => setIsMobileMenuOpen((open) => !open)}
+                  style={{ backgroundImage: `url(${avatarUrl})` }}
+                >
+                  <span className="cc-avatar-core" aria-hidden="true" />
+                </button>
+                <button className="cc-btn hidden md:inline-flex" type="button" onClick={() => clearToken()}>
                   Logout
                 </button>
               </>
             ) : (
-              <NavLink to="/signin" className="cc-nav-link-cta">
+              <>
+                <NavLink to="/signin" className="cc-nav-link-cta hidden md:inline-flex">
+                  Sign in
+                </NavLink>
+                <button
+                  className="cc-btn md:hidden"
+                  type="button"
+                  aria-label="Open menu"
+                  aria-haspopup="menu"
+                  aria-expanded={isMobileMenuOpen}
+                  onClick={() => setIsMobileMenuOpen((open) => !open)}
+                >
+                  Menu
+                </button>
+              </>
+            )}
+          </div>
+        </div>
+        {isMobileMenuOpen ? (
+          <div className="cc-card cc-mobile-menu md:hidden" role="menu">
+            <NavLink to="/browse" className="cc-mobile-link" onClick={() => setIsMobileMenuOpen(false)}>
+              Browse
+            </NavLink>
+            <NavLink to="/donate" className="cc-mobile-link" onClick={() => setIsMobileMenuOpen(false)}>
+              Donate
+            </NavLink>
+            <NavLink to="/requests" className="cc-mobile-link" onClick={() => setIsMobileMenuOpen(false)}>
+              Requests
+            </NavLink>
+            {isAuthed ? (
+              <>
+                <NavLink to="/profile" className="cc-mobile-link" onClick={() => setIsMobileMenuOpen(false)}>
+                  Profile
+                </NavLink>
+                <button
+                  className="cc-mobile-link"
+                  type="button"
+                  onClick={() => {
+                    clearToken();
+                    setIsMobileMenuOpen(false);
+                  }}
+                >
+                  Logout
+                </button>
+              </>
+            ) : (
+              <NavLink to="/signin" className="cc-mobile-link" onClick={() => setIsMobileMenuOpen(false)}>
                 Sign in
               </NavLink>
             )}
           </div>
-        </div>
+        ) : null}
       </header>
 
       <main className="mx-auto max-w-6xl px-6 py-6">
