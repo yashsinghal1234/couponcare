@@ -15,15 +15,52 @@ requestsRouter.get("/requests/incoming", requireAuth, async (req, res) => {
     .limit(200)
     .lean();
 
+  const couponIds = [...new Set(requests.map((r) => r.couponId.toString()))];
+  const recipientIds = [...new Set(requests.map((r) => r.recipientId.toString()))];
+
+  const [coupons, recipients] = await Promise.all([
+    CouponModel.find({ _id: { $in: couponIds } }).lean(),
+    UserModel.find({ _id: { $in: recipientIds } }, { displayName: 1 }).lean()
+  ]);
+
+  const couponsById = new Map(coupons.map((coupon) => [coupon._id.toString(), coupon]));
+  const recipientsById = new Map(
+    recipients.map((recipient) => [recipient._id.toString(), recipient])
+  );
+
   res.json({
-    requests: requests.map((r) => ({
-      id: r._id.toString(),
-      couponId: r.couponId.toString(),
-      recipientId: r.recipientId.toString(),
-      donorId: r.donorId.toString(),
-      status: r.status,
-      createdAt: r.createdAt
-    }))
+    requests: requests.map((r) => {
+      const coupon = couponsById.get(r.couponId.toString());
+      const recipient = recipientsById.get(r.recipientId.toString());
+      const recipientName = recipient?.displayName ?? null;
+
+      return {
+        id: r._id.toString(),
+        couponId: r.couponId.toString(),
+        recipientId: r.recipientId.toString(),
+        donorId: r.donorId.toString(),
+        status: r.status,
+        createdAt: r.createdAt,
+        recipientName,
+        coupon: coupon
+          ? {
+            id: coupon._id.toString(),
+            brand: coupon.brand,
+            valueDescription: coupon.valueDescription,
+            category: coupon.category,
+            expiryDate: coupon.expiryDate,
+            brandLogoUrl: coupon.brandLogoUrl ?? null,
+            productImageUrl: coupon.productImageUrl ?? null
+          }
+          : null,
+        recipient: recipient
+          ? {
+            id: recipient._id.toString(),
+            displayName: recipient.displayName
+          }
+          : null
+      };
+    })
   });
 });
 

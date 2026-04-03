@@ -55,7 +55,7 @@ export function DonateCouponPage() {
   const [rewardAttestation, setRewardAttestation] = useState(false);
 
   const logo = useMemo(() => getBrandLogo(detection.brand), [detection.brand]);
-  const confidencePercent = Math.round(detection.confidence * 100);
+  const confidencePercent = Math.round(Math.min(100, Math.max(0, detection.confidence)));
 
   // ─── Handlers ──────────────────────────────
   function handlePasteInput(text: string) {

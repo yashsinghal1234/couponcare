@@ -18,6 +18,18 @@ const AVATAR_PRESETS = [
     url: "https://i.pinimg.com/736x/b0/bc/be/b0bcbe2b26065f336f6086b4bcd6bea9.jpg",
   },
   {
+    label: "Contour",
+    url: "https://i.pinimg.com/1200x/82/ff/66/82ff66a7efd8ed5e8969ab6634ba8d85.jpg",
+  },
+  {
+    label: "Studio",
+    url: "https://i.pinimg.com/736x/69/59/b8/6959b8d40c99398615fc2d9bb116bdae.jpg",
+  },
+  {
+    label: "Focus",
+    url: "https://i.pinimg.com/736x/96/7d/e9/967de98b98584d52f26f88c78cdb6369.jpg",
+  },
+  {
     label: "Noir",
     url:
       "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 120 120'><rect width='120' height='120' fill='%230b0b0d'/><circle cx='60' cy='60' r='28' fill='%23f8fafc'/></svg>",

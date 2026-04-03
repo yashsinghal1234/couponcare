@@ -23,6 +23,7 @@ type IncomingRequest = {
   recipientId: string;
   status: "pending" | "approved" | "rejected";
   createdAt: string;
+  recipientName?: string | null;
   coupon?: CouponSummary | null;
   recipient?: RecipientSummary | null;
 };
@@ -89,7 +90,7 @@ export function IncomingRequestsPage() {
             const couponImage = r.coupon?.productImageUrl ?? r.coupon?.brandLogoUrl ?? "";
             const couponBrand = r.coupon?.brand ?? "Coupon";
             const couponValue = r.coupon?.valueDescription ?? "Details unavailable";
-            const recipientName = r.recipient?.displayName ?? "Recipient";
+            const recipientName = r.recipient?.displayName ?? r.recipientName ?? "Recipient";
             const category = r.coupon?.category;
             const expiryDate = r.coupon?.expiryDate;
 
@@ -167,7 +168,7 @@ export function IncomingRequestsPage() {
               const couponImage = r.coupon?.productImageUrl ?? r.coupon?.brandLogoUrl ?? "";
               const couponBrand = r.coupon?.brand ?? "Coupon";
               const couponValue = r.coupon?.valueDescription ?? "Details unavailable";
-              const recipientName = r.recipient?.displayName ?? "Recipient";
+              const recipientName = r.recipient?.displayName ?? r.recipientName ?? "Recipient";
               const category = r.coupon?.category;
               const expiryDate = r.coupon?.expiryDate;
 

@@ -13,7 +13,7 @@ type CouponListItem = {
   city?: string;
   revealMode: "donorApproval" | "autoRelease";
   showDonorName: boolean;
-  donor?: { displayName: string };
+  donor?: { displayName?: string; trustScore?: number | null };
   status: "available" | "claimed" | "expired";
 };
 
@@ -101,6 +101,12 @@ export function BrowseCouponsPage() {
                   {c.city ? `${c.city} • ` : ""}
                   {c.showDonorName && c.donor?.displayName ? `by ${c.donor.displayName}` : "Anonymous donor"}
                 </div>
+                {typeof c.donor?.trustScore === "number" ? (
+                  <div className="mt-2 inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/5 px-3 py-1 text-xs text-white/70">
+                    <span className="uppercase tracking-[0.2em] text-white/50">Trust</span>
+                    <span className="text-white">{Math.round(c.donor.trustScore)}%</span>
+                  </div>
+                ) : null}
               </div>
               <div className="flex items-center justify-between">
                 <span className="rounded-full border border-orange-400/50 bg-orange-500/10 px-2 py-1 text-xs text-orange-300">{c.revealMode}</span>

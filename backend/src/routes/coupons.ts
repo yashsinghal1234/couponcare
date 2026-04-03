@@ -76,8 +76,8 @@ couponsRouter.get("/", async (req, res) => {
     .lean();
 
   const donorIds = Array.from(new Set(coupons.map((c) => c.donorId.toString())));
-  const donors = await UserModel.find({ _id: { $in: donorIds } }, { displayName: 1 }).lean();
-  const donorNameById = new Map(donors.map((d) => [d._id.toString(), d.displayName]));
+  const donors = await UserModel.find({ _id: { $in: donorIds } }, { displayName: 1, stats: 1 }).lean();
+  const donorById = new Map(donors.map((d) => [d._id.toString(), d]));
 
   res.json({
     coupons: coupons.map((c) => ({
@@ -93,11 +93,28 @@ couponsRouter.get("/", async (req, res) => {
       productImageUrl: c.productImageUrl,
       revealMode: c.revealMode,
       showDonorName: c.showDonorName,
-      donor: c.showDonorName ? { displayName: donorNameById.get(c.donorId.toString()) ?? "Donor" } : undefined,
+      donor: (() => {
+        const donor = donorById.get(c.donorId.toString());
+        if (!donor) return { trustScore: null };
+        return {
+          displayName: c.showDonorName ? donor.displayName ?? "Donor" : undefined,
+          trustScore: computeTrustScore(donor.stats)
+        };
+      })(),
       status: c.status
     }))
   });
 });
+
+function computeTrustScore(stats?: { donatedCount?: number; impactScore?: number }) {
+  if (!stats) return null;
+  const donated = stats.donatedCount ?? 0;
+  const impact = stats.impactScore ?? 0;
+  const donatedBoost = Math.min(45, donated * 3);
+  const impactBoost = Math.min(20, impact * 2);
+  const score = 35 + donatedBoost + impactBoost;
+  return Math.max(0, Math.min(100, Math.round(score)));
+}
 
 couponsRouter.get("/:id", async (req, res) => {
   const coupon = await CouponModel.findById(req.params.id).lean();
