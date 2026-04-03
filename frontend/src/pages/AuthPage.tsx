@@ -154,19 +154,44 @@ export function SignInPage() {
 export function ForgotPasswordPage() {
   const navigate = useNavigate();
   const [email, setEmail] = useState("");
+  const [displayName, setDisplayName] = useState("");
+  const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
   const [status, setStatus] = useState("");
   const [sent, setSent] = useState(false);
+  const [verified, setVerified] = useState(false);
 
-  async function submit() {
-    if (!email.trim()) {
-      setStatus("Please enter your email.");
+  async function verifyIdentity() {
+    if (!email.trim() || !displayName.trim()) {
+      setStatus("Please enter your email and display name.");
       return;
     }
-    setStatus("Sending reset link...");
-    const r = await apiPost<{ message?: string }>("/api/auth/forgot-password", { email });
+    setStatus("Verifying...");
+    const r = await apiPost<{ ok: boolean }>("/api/auth/verify-reset", { email, displayName });
+    if (!r.ok) return setStatus(r.error);
+    setVerified(true);
+    setStatus("Verified. Set a new password.");
+  }
+
+  async function submitReset() {
+    if (!verified) return;
+    if (!password || password.length < 8) {
+      setStatus("Password must be at least 8 characters.");
+      return;
+    }
+    if (password !== confirmPassword) {
+      setStatus("Passwords do not match.");
+      return;
+    }
+    setStatus("Updating password...");
+    const r = await apiPost<{ message?: string }>("/api/auth/reset-password-direct", {
+      email,
+      displayName,
+      password
+    });
     if (!r.ok) return setStatus(r.error);
     setSent(true);
-    setStatus(r.data.message ?? "If an account exists, a reset link will be sent.");
+    setStatus(r.data.message ?? "Password updated successfully.");
   }
 
   const isError = status.toLowerCase().includes("error") || status.toLowerCase().includes("invalid");
@@ -179,11 +204,11 @@ export function ForgotPasswordPage() {
             <p className="cc-auth-kicker">CouponCare</p>
             <h2 className="cc-auth-title">Reset your access.</h2>
             <p className="cc-auth-subtitle">
-              Enter the email tied to your account. We will send a reset link if it exists.
+              Verify your email and display name to set a new password.
             </p>
             <div className="flex flex-wrap gap-2">
-              <span className="cc-tag">Account security</span>
-              <span className="cc-tag">Private reset</span>
+              <span className="cc-tag">Identity check</span>
+              <span className="cc-tag">Secure reset</span>
             </div>
           </div>
         </section>
@@ -191,25 +216,70 @@ export function ForgotPasswordPage() {
         <section className="cc-card cc-auth-panel">
           <div className="space-y-2">
             <p className="cc-auth-kicker">Forgot password</p>
-            <h1 className="cc-title">Reset link</h1>
-            <p className="cc-muted">We will email you a reset link if the account exists.</p>
+            <h1 className="cc-title">Reset password</h1>
+            <p className="cc-muted">Confirm your identity and choose a new password.</p>
           </div>
 
-          <label className="block text-sm">
-            <div className="mb-1 text-white/70">Email</div>
-            <input
-              className="cc-input"
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              autoComplete="email"
-              placeholder="you@example.com"
-            />
-          </label>
+          {!verified ? (
+            <>
+              <label className="block text-sm">
+                <div className="mb-1 text-white/70">Email</div>
+                <input
+                  className="cc-input"
+                  type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  autoComplete="email"
+                  placeholder="you@example.com"
+                />
+              </label>
 
-          <button className="cc-btn-primary" onClick={submit} type="button" disabled={sent}>
-            {sent ? "Reset link sent" : "Send reset link"}
-          </button>
+              <label className="block text-sm">
+                <div className="mb-1 text-white/70">Display name</div>
+                <input
+                  className="cc-input"
+                  value={displayName}
+                  onChange={(e) => setDisplayName(e.target.value)}
+                  autoComplete="name"
+                  placeholder="Your display name"
+                />
+              </label>
+
+              <button className="cc-btn-primary" onClick={verifyIdentity} type="button">
+                Verify identity
+              </button>
+            </>
+          ) : (
+            <>
+              <label className="block text-sm">
+                <div className="mb-1 text-white/70">New password</div>
+                <input
+                  className="cc-input"
+                  type="password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  autoComplete="new-password"
+                  placeholder="Create a strong password"
+                />
+              </label>
+
+              <label className="block text-sm">
+                <div className="mb-1 text-white/70">Confirm password</div>
+                <input
+                  className="cc-input"
+                  type="password"
+                  value={confirmPassword}
+                  onChange={(e) => setConfirmPassword(e.target.value)}
+                  autoComplete="new-password"
+                  placeholder="Repeat the password"
+                />
+              </label>
+
+              <button className="cc-btn-primary" onClick={submitReset} type="button" disabled={sent}>
+                {sent ? "Password updated" : "Update password"}
+              </button>
+            </>
+          )}
 
           <button className="cc-btn" onClick={() => navigate("/signin")} type="button">
             Back to sign in
