@@ -1,0 +1,206 @@
+import type { ReactElement } from "react";
+import { useEffect, useState } from "react";
+import { BrowserRouter, Navigate, NavLink, Route, Routes, useLocation } from "react-router-dom";
+
+import { clearToken, getToken, onAuthChanged } from "../lib/api";
+import { ForgotPasswordPage, SignInPage } from "../pages/AuthPage";
+import { BrowseCouponsPage } from "../pages/BrowseCouponsPage";
+import { CouponDetailPage } from "../pages/CouponDetailPage";
+import { DonateCouponPage } from "../pages/DonateCouponPage";
+import { IncomingRequestsPage } from "../pages/IncomingRequestsPage";
+import { HomePage } from "../pages/HomePage";
+import { ProfilePage } from "../pages/ProfilePage";
+
+export function App() {
+  return (
+    <BrowserRouter>
+      <AppShell />
+    </BrowserRouter>
+  );
+}
+
+function AppShell() {
+  const location = useLocation();
+  const isHome = location.pathname === "/";
+  const [isAuthed, setIsAuthed] = useState(Boolean(getToken()));
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [avatarUrl, setAvatarUrl] = useState<string>(
+    "https://i.pinimg.com/736x/b0/bc/be/b0bcbe2b26065f336f6086b4bcd6bea9.jpg"
+  );
+  useEffect(() => onAuthChanged(() => setIsAuthed(Boolean(getToken()))), []);
+  useEffect(() => setIsMobileMenuOpen(false), [location.pathname]);
+
+  useEffect(() => {
+    const key = "cc_avatar_url";
+    const fallback = "https://i.pinimg.com/736x/b0/bc/be/b0bcbe2b26065f336f6086b4bcd6bea9.jpg";
+    const syncAvatar = () => {
+      const stored = localStorage.getItem(key);
+      setAvatarUrl(stored || fallback);
+    };
+    syncAvatar();
+    window.addEventListener("cc-avatar-updated", syncAvatar as EventListener);
+    window.addEventListener("storage", syncAvatar);
+    return () => {
+      window.removeEventListener("cc-avatar-updated", syncAvatar as EventListener);
+      window.removeEventListener("storage", syncAvatar);
+    };
+  }, []);
+
+  useEffect(() => {
+    if (!window.matchMedia("(pointer: fine)").matches) return;
+
+    const cursor = document.createElement("div");
+    cursor.className = "cc-cursor";
+    document.body.appendChild(cursor);
+
+    const move = (event: MouseEvent) => {
+      cursor.style.left = `${event.clientX}px`;
+      cursor.style.top = `${event.clientY}px`;
+
+      const el = document.elementFromPoint(event.clientX, event.clientY) as HTMLElement | null;
+      const interactive = el?.closest("a, button, .cc-cursor-target") as HTMLElement | null;
+      const isActive = Boolean(interactive);
+      cursor.classList.toggle("cc-cursor--active", isActive);
+
+      const isInvert =
+        interactive?.classList.contains("cc-btn-primary") ||
+        interactive?.classList.contains("cc-cta") ||
+        interactive?.classList.contains("cc-nav-link-cta");
+      cursor.classList.toggle("cc-cursor--invert", Boolean(isInvert));
+    };
+
+    window.addEventListener("mousemove", move);
+
+    return () => {
+      window.removeEventListener("mousemove", move);
+      cursor.remove();
+    };
+  }, []);
+
+  const navClass = ({ isActive }: { isActive: boolean }) =>
+    `cc-nav-link ${isActive ? "cc-nav-link-active" : ""}`;
+
+  return (
+    <div className={`cc-shell ${isHome ? "cc-shell-home" : ""}`}>
+      <header className="cc-header">
+        <div className="cc-header-inner">
+          <NavLink to="/" className="cc-logo">
+            CouponCare
+          </NavLink>
+          <nav className="cc-nav">
+            <NavLink to="/browse" className={navClass}>
+              Browse
+            </NavLink>
+            <NavLink to="/donate" className={navClass}>
+              Donate
+            </NavLink>
+            <NavLink to="/requests" className={navClass}>
+              Requests
+            </NavLink>
+          </nav>
+          <div className="cc-nav-actions">
+            {isAuthed ? (
+              <>
+                <NavLink
+                  to="/profile"
+                  className="cc-avatar-btn hidden md:inline-flex"
+                  aria-label="Profile"
+                  title="Profile"
+                  style={{ backgroundImage: `url(${avatarUrl})` }}
+                >
+                  <span className="cc-avatar-core" aria-hidden="true" />
+                </NavLink>
+                <button
+                  className="cc-avatar-btn md:hidden"
+                  type="button"
+                  aria-label="Open menu"
+                  aria-haspopup="menu"
+                  aria-expanded={isMobileMenuOpen}
+                  onClick={() => setIsMobileMenuOpen((open) => !open)}
+                  style={{ backgroundImage: `url(${avatarUrl})` }}
+                >
+                  <span className="cc-avatar-core" aria-hidden="true" />
+                </button>
+                <button className="cc-btn hidden md:inline-flex" type="button" onClick={() => clearToken()}>
+                  Logout
+                </button>
+              </>
+            ) : (
+              <>
+                <NavLink to="/signin" className="cc-nav-link-cta hidden md:inline-flex">
+                  Sign in
+                </NavLink>
+                <button
+                  className="cc-btn md:hidden"
+                  type="button"
+                  aria-label="Open menu"
+                  aria-haspopup="menu"
+                  aria-expanded={isMobileMenuOpen}
+                  onClick={() => setIsMobileMenuOpen((open) => !open)}
+                >
+                  Menu
+                </button>
+              </>
+            )}
+          </div>
+        </div>
+        {isMobileMenuOpen ? (
+          <div className="cc-card cc-mobile-menu md:hidden" role="menu">
+            <NavLink to="/browse" className="cc-mobile-link" onClick={() => setIsMobileMenuOpen(false)}>
+              Browse
+            </NavLink>
+            <NavLink to="/donate" className="cc-mobile-link" onClick={() => setIsMobileMenuOpen(false)}>
+              Donate
+            </NavLink>
+            <NavLink to="/requests" className="cc-mobile-link" onClick={() => setIsMobileMenuOpen(false)}>
+              Requests
+            </NavLink>
+            {isAuthed ? (
+              <>
+                <NavLink to="/profile" className="cc-mobile-link" onClick={() => setIsMobileMenuOpen(false)}>
+                  Profile
+                </NavLink>
+                <button
+                  className="cc-mobile-link"
+                  type="button"
+                  onClick={() => {
+                    clearToken();
+                    setIsMobileMenuOpen(false);
+                  }}
+                >
+                  Logout
+                </button>
+              </>
+            ) : (
+              <NavLink to="/signin" className="cc-mobile-link" onClick={() => setIsMobileMenuOpen(false)}>
+                Sign in
+              </NavLink>
+            )}
+          </div>
+        ) : null}
+      </header>
+
+      <main className="mx-auto max-w-6xl px-6 py-6">
+        <Routes>
+          <Route path="/" element={<HomePage />} />
+          <Route path="/signin" element={<SignInPage />} />
+          <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+          <Route path="/auth" element={<Navigate to="/signin" replace />} />
+          <Route path="/donate" element={<ProtectedRoute><DonateCouponPage /></ProtectedRoute>} />
+          <Route path="/browse" element={<BrowseCouponsPage />} />
+          <Route path="/coupons/:id" element={<CouponDetailPage />} />
+          <Route path="/requests" element={<ProtectedRoute><IncomingRequestsPage /></ProtectedRoute>} />
+          <Route path="/profile" element={<ProtectedRoute><ProfilePage /></ProtectedRoute>} />
+        </Routes>
+      </main>
+    </div>
+  );
+}
+
+function ProtectedRoute({ children }: { children: ReactElement }) {
+  if (!getToken()) {
+    return <Navigate to="/signin" replace />;
+  }
+  return children;
+}
+
